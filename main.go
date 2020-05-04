@@ -90,6 +90,7 @@ func (serv *Server) UpInterface() error{
 	attrs := netlink.NewLinkAttrs()
 	attrs.Name = *wgLinkName
 	link := wgLink{attrs: &attrs}
+
 	log.Debug("Adding WireGuard device %s", *wgLinkName)
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err){
@@ -97,16 +98,36 @@ func (serv *Server) UpInterface() error{
 	} else if err != nil{
 		return err
 	}
-	log.Debug("Setting up IP address to wireguard device: ", )
+
+	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
 	addr, _ := netlink.ParseAddr(*clientIPRange)
 	err = netlink.AddrAdd(&link, addr)
-	return nil
+	if os.IsExist(err){
+		log.Info("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
+	}
+
+	log.Debug("Bringing up wireguard device: ", *wgLinkName)
+	err = netlink.LinkSetUp(&link)
+	if err != nil{
+		log.Error("COuldn't bring up %s", *wgLinkName)
+	}
+	return err
 }
+
+func (serv *Server) Start() error{
+err := serv.UpInterface()
+if err != nil{
+
+}
+return  err
+}
+
 
 func main(){
 
 	s := NewServer()
-	s.UpInterface()
+	fmt.Println("Complete")
+	s.Start()
 }
 
 func getTlsConfig() *tls.Config {
