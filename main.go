@@ -86,7 +86,7 @@ func NewServer() *Server {
 	return &surf
 }
 
-func (serv *Server) UpInterface() error{
+func (serv *Server) UpInterface() {
 	attrs := netlink.NewLinkAttrs()
 	attrs.Name = *wgLinkName
 	link := wgLink{attrs: &attrs}
@@ -96,7 +96,7 @@ func (serv *Server) UpInterface() error{
 	if os.IsExist(err){
 		log.Info("WireGuard interface %s already exists. REUSING. ", *wgLinkName)
 	} else if err != nil{
-		return err
+
 	}
 
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
@@ -111,7 +111,6 @@ func (serv *Server) UpInterface() error{
 	if err != nil{
 		log.Error("COuldn't bring up %s", *wgLinkName)
 	}
-	return err
 }
 
 func (serv *Server) Start() error{
