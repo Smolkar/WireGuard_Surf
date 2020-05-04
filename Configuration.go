@@ -53,7 +53,7 @@ func newServerConfig(cfgPath string) *WgConf {
 		err = config.Write()
 
 	}
-	log.Print("PublicKey: ", config.PublicKey, "PrivateKey", config.PrivateKey, )
+	log.Info("PublicKey: ", config.PublicKey, "PrivateKey", config.PrivateKey, )
 	if err != nil {
 		log.Info("Error", err)
 	}
