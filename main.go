@@ -109,16 +109,17 @@ func (serv *Server) UpInterface() {
 	log.Debug("Bringing up wireguard device: ", *wgLinkName)
 	err = netlink.LinkSetUp(&link)
 	if err != nil{
-		log.Error("COuldn't bring up %s", *wgLinkName)
+		log.Error("Couldn't bring up %s", *wgLinkName)
 	}
 }
 
 func (serv *Server) Start() error{
-err := serv.UpInterface()
-if err != nil{
-
-}
-return  err
+serv.UpInterface()
+//if err != nil{
+//
+//}
+//return  err
+return nil
 }
 
 
