@@ -125,6 +125,11 @@ func (serv *Server) UpInterface() error {
 	if err != nil{
 		log.Error("Couldn't bring up %s", attrs.Name)
 	}
+	log.Info("Enabling IP Forward....")
+	err = serv.enableIPForward()
+	if err != nil{
+		log.Error("Couldnt enable IP Forwarding:  ", err)
+	}
 	return nil
 }
 
@@ -148,7 +153,7 @@ func (s *Server) enableIPForward() error {
 	}
 
 	if string(content) == "0\n" {
-		log.Info("Enabling sys.net.ipv4.ip_forward")
+		log.Info("Enabling sys.net.ipv4.ip_forward - Success")
 		return ioutil.WriteFile(p, []byte("1"), 0600)
 	}
 
