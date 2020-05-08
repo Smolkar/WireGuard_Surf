@@ -162,6 +162,7 @@ func (s *Server) enableIPForward() error {
 func (serv *Server) wgConfiguation() error{
 	log.Info("------------------------------------------")
 	log.Info("Configuring WireGuard")
+	return nil
 }
 func (serv *Server) Start() error{
 
