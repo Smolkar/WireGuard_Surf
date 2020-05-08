@@ -70,7 +70,7 @@ func (w *wgLink) Type() string {
 }
 
 func NewServer() *Server {
-	ipAddr, ipNet, err := net.ParseCIDR("10.0.0.0/8")
+	ipAddr, ipNet, err := net.ParseCIDR("10.0.10.0/8")
 	if err != nil{
 		log.Fatal("Error with those IPS:",err)
 	}
@@ -98,20 +98,20 @@ func NewServer() *Server {
 
 func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
-	attrs.Name = *wgLinkName
+	attrs.Name = "wg-Real"
 	link := wgLink{attrs: &attrs}
 	fmt.Println(*wgLinkName)
-	log.Info("Adding WireGuard device ", *wgLinkName)
+	log.Info("Adding WireGuard device ", attrs.Name)
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err){
-		log.Info("WireGuard interface %s already exists. REUSING. ", *wgLinkName)
+		log.Info("WireGuard interface %s already exists. REUSING. ", attrs.Name)
 	} else if err != nil{
 		log.Error("Problem with the interface :::",err)
 		return nil
 	}
 
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
-	addr, _ := netlink.ParseAddr(*clientIPRange)
+	addr, _ := netlink.ParseAddr("10.0.10.0/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err){
 		log.Info("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
@@ -120,15 +120,15 @@ func (serv *Server) UpInterface() error {
 		return err
 	}
 
-	log.Debug("Bringing up wireguard device: ", *wgLinkName)
+	log.Info("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
 	if err != nil{
-		log.Error("Couldn't bring up %s", *wgLinkName)
+		log.Error("Couldn't bring up %s", attrs.Name)
 	}
 	return nil
 }
 
-func (serv *Server) WhoAmI(w http.ResponseWriter, r *http.Request, ps httprouter.Param)  {
+func (serv *Server) WhoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Param)  {
 	user :=  r.Context().Value(key).(string)
 	log.Info(user)
 	err := json.NewEncoder(w).Encode(struct{User string}{user})
@@ -139,7 +139,21 @@ func (serv *Server) WhoAmI(w http.ResponseWriter, r *http.Request, ps httprouter
 
 }
 
+func (s *Server) enableIPForward() error {
+	p := "/proc/sys/net/ipv4/ip_forward"
 
+	content, err := ioutil.ReadFile(p)
+	if err != nil {
+		return err
+	}
+
+	if string(content) == "0\n" {
+		log.Info("Enabling sys.net.ipv4.ip_forward")
+		return ioutil.WriteFile(p, []byte("1"), 0600)
+	}
+
+	return nil
+}
 func (serv *Server) Start() error{
 
 	err := serv.UpInterface()
@@ -188,6 +202,7 @@ func main(){
 	fmt.Println("Complete")
 	s.Start()
 }
+
 
 func getTlsConfig() *tls.Config {
 	caCertFile := filepath.Join(tlsCertDir, "ca.crt")
