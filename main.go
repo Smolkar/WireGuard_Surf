@@ -31,7 +31,7 @@ var (
 	authUserHeader        = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
 	//
-	wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg1		").String()
+	wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg1			").String()
 	//wgListenPort = kingpin.Flag("wg-listen-port", "WireGuard UDP port to listen to").Default("51820").Int()
 	//wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
 	//wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
