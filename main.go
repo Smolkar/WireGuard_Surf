@@ -101,6 +101,7 @@ func (serv *Server) UpInterface() error {
 	attrs.Name = "wg-Real"
 	link := wgLink{attrs: &attrs}
 	fmt.Println(*wgLinkName)
+	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err){
@@ -109,7 +110,7 @@ func (serv *Server) UpInterface() error {
 		log.Error("Problem with the interface :::",err)
 		return nil
 	}
-
+	log.Info("------------------------------------------")
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
 	addr, _ := netlink.ParseAddr("10.0.10.0/8")
 	err = netlink.AddrAdd(&link, addr)
@@ -119,17 +120,13 @@ func (serv *Server) UpInterface() error {
 		log.Error(err)
 		return err
 	}
-
+	log.Info("------------------------------------------")
 	log.Info("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
 	if err != nil{
 		log.Error("Couldn't bring up %s", attrs.Name)
 	}
-	log.Info("Enabling IP Forward....")
-	err = serv.enableIPForward()
-	if err != nil{
-		log.Error("Couldnt enable IP Forwarding:  ", err)
-	}
+
 	return nil
 }
 
@@ -153,11 +150,18 @@ func (s *Server) enableIPForward() error {
 	}
 
 	if string(content) == "0\n" {
+
 		log.Info("Enabling sys.net.ipv4.ip_forward - Success")
+
 		return ioutil.WriteFile(p, []byte("1"), 0600)
 	}
 
 	return nil
+}
+
+func (serv *Server) wgConfiguation() error{
+	log.Info("------------------------------------------")
+	log.Info("Configuring WireGuard")
 }
 func (serv *Server) Start() error{
 
@@ -165,6 +169,14 @@ func (serv *Server) Start() error{
 	if err != nil{
 		return err
 	}
+	log.Info("------------------------------------------")
+	log.Info("Enabling IP Forward....")
+	err = serv.enableIPForward()
+	if err != nil{
+
+		log.Error("Couldnt enable IP Forwarding:  ", err)
+	}
+
 
 	router := httprouter.New()
 
