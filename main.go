@@ -73,7 +73,7 @@ func (w *wgLink) Type() string {
 }
 
 func NewServer() *Server {
-	ipAddr, ipNet, err := net.ParseCIDR("10.0.10.0/8")
+	ipAddr, ipNet, err := net.ParseCIDR("10.10.10.0/8")
 	if err != nil{
 		log.Fatal("Error with those IPS:",err)
 	}
@@ -101,7 +101,7 @@ func NewServer() *Server {
 
 func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
-	attrs.Name = "wg-Real"
+	attrs.Name = "wg-Real1"
 	link := wgLink{attrs: &attrs}
 	fmt.Println(*wgLinkName)
 	log.Info("------------------------------------------")
@@ -115,7 +115,7 @@ func (serv *Server) UpInterface() error {
 	}
 	log.Info("------------------------------------------")
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
-	addr, _ := netlink.ParseAddr("10.0.10.0/8")
+	addr, _ := netlink.ParseAddr("10.10.10.0/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err){
 		log.Info("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
@@ -235,7 +235,8 @@ func (serv *Server) Start() error{
 
 		log.Error("Couldnt enable IP Forwarding:  ", err)
 	}
-	err = serv.wgConfiguation()
+	err = serv.wgConfiguatio
+	n()
 	if err != nil{
 		log.Error("Couldnt Configure interface ::", err)
 	}
