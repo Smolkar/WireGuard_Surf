@@ -174,6 +174,7 @@ func (serv *Server) wgConfiguation() error{
 	if err != nil{
 		log.Error("Couldn't add PrivateKey ::", err)
 	}
+	log.Info("PrivateKey->Successfully added -", serv.Config.PrivateKey)
 	peers := make([]wgtypes.PeerConfig,0)
 	for user, cfg := range serv.Config.Users{
 		for id, dev := range cfg.Clients{
@@ -200,7 +201,7 @@ func (serv *Server) wgConfiguation() error{
 		ReplacePeers: true,
 		Peers:        peers,
 	}
-	err = wg.ConfigureDevice("wg-Real", cfg)
+	err = wg.ConfigureDevice("wg-Real1", cfg)
 	if err != nil{
 		log.Fatal("Error configuring device ::", err)
 		return err
