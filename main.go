@@ -10,6 +10,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"net"
@@ -39,6 +41,7 @@ var (
 	tlsCertDir = "."
 	tlsKeyDir  = "."
 	wgLiName = "wg0"
+	wgPort = 51820
 
 
 
@@ -162,6 +165,61 @@ func (s *Server) enableIPForward() error {
 func (serv *Server) wgConfiguation() error{
 	log.Info("------------------------------------------")
 	log.Info("Configuring WireGuard")
+	wg, err := wgctrl.New()
+	if err != nil{
+		log.Error("There is an error configuring WireGuard ::", err)
+	}
+	log.Info("Adding PrivetKey....")
+	keys, err := wgtypes.ParseKey(serv.Config.PrivateKey)
+	if err != nil{
+		log.Error("Couldn't add PrivateKey ::", err)
+	}
+	peers := make([]wgtypes.PeerConfig,0)
+	for user, cfg := range serv.Config.Users{
+		for id, dev := range cfg.Clients{
+			pbkey, err := wgtypes.ParseKey(dev.PublicKey)
+			if err != nil{
+				log.Error("Couldn't add PublicKey to peer :: ", err)
+			}
+		AllowedIPs := make([]net.IPNet,1)
+		AllowedIPs[0] = *netlink.NewIPNet(dev.IP)
+		peer := wgtypes.PeerConfig{
+			PublicKey:                   pbkey,
+			ReplaceAllowedIPs:           true,
+			AllowedIPs:                  AllowedIPs,
+		}
+		log.Infof("Adding user ")
+		log.Infof("User: %s, ClientID %s: , Publickey: %s AllowedIPS: %s", user,id,dev.PublicKey,peer.AllowedIPs)
+		peers = append(peers, peer)
+		}
+
+	}
+	cfg := wgtypes.Config{
+		PrivateKey:   &keys,
+		ListenPort:   &wgPort,
+		ReplacePeers: true,
+		Peers:        peers,
+	}
+	err = wg.ConfigureDevice("wg-Real", cfg)
+	if err != nil{
+		log.Fatal("Error configuring device ::", err)
+		return err
+	}
+	return nil
+}
+
+func (serv *Server) reconfiguringWG() error {
+	log.Infof("Reconfiguring wireGuard interface: wg-Real")
+
+	err := serv.Config.Write()
+	if err != nil{
+		log.Fatal("Error Writing on configuration file ",err)
+
+	}
+	err = serv.wgConfiguation()
+	if err != nil{
+		log.Fatal("Error Configuring file ::", err)
+	}
 	return nil
 }
 func (serv *Server) Start() error{
@@ -176,6 +234,10 @@ func (serv *Server) Start() error{
 	if err != nil{
 
 		log.Error("Couldnt enable IP Forwarding:  ", err)
+	}
+	err = serv.wgConfiguation()
+	if err != nil{
+		log.Error("Couldnt Configure interface ::", err)
 	}
 
 
