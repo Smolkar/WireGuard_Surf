@@ -218,7 +218,7 @@ func (serv *Server) reconfiguringWG() error {
 	}
 	err = serv.wgConfiguation()
 	if err != nil{
-		log.Fatal("Error Configuring file ::", err)
+		log.Infof("Error Configuring file ::", err)
 	}
 	return nil
 }
@@ -235,8 +235,7 @@ func (serv *Server) Start() error{
 
 		log.Error("Couldnt enable IP Forwarding:  ", err)
 	}
-	err = serv.wgConfiguatio
-	n()
+	err = serv.wgConfiguation()
 	if err != nil{
 		log.Error("Couldnt Configure interface ::", err)
 	}
