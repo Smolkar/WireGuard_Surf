@@ -32,16 +32,11 @@ var (
 	clientIPRange         = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("172.31.255.0/24").String()
 	authUserHeader        = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
-	//
-	wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg1			").String()
-	//wgListenPort = kingpin.Flag("wg-listen-port", "WireGuard UDP port to listen to").Default("51820").Int()
-	//wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
-	//wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
-	//wgDNS        = kingpin.Flag("wg-dns", "WireGuard client DNS server (optional)").Default("").String()
 	tlsCertDir = "."
 	tlsKeyDir  = "."
 	wgLiName = "wg0"
-	wgPort = 51820
+	wgPort = 5180
+	//dataDir = "/Config/lib"
 
 
 
@@ -95,7 +90,6 @@ func NewServer() *Server {
 		clientIPRange:  ipNet,
 		assets:         assets,
 	}
-	fmt.Println(assets)
 	return &surf
 }
 
@@ -103,12 +97,11 @@ func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
 	attrs.Name = "wg-Real1"
 	link := wgLink{attrs: &attrs}
-	fmt.Println(*wgLinkName)
 	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err){
-		log.Info("WireGuard interface %s already exists. REUSING. ", attrs.Name)
+		log.Infof("WireGuard interface %s already exists. REUSING. ", attrs.Name)
 	} else if err != nil{
 		log.Error("Problem with the interface :::",err)
 		return nil
@@ -118,7 +111,7 @@ func (serv *Server) UpInterface() error {
 	addr, _ := netlink.ParseAddr("10.10.10.0/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err){
-		log.Info("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
+		log.Infof("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
 	}else if err != nil{
 		log.Error(err)
 		return err
@@ -127,7 +120,7 @@ func (serv *Server) UpInterface() error {
 	log.Info("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
 	if err != nil{
-		log.Error("Couldn't bring up %s", attrs.Name)
+		log.Errorf("Couldn't bring up %s", attrs.Name)
 	}
 
 	return nil
