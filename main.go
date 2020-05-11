@@ -236,8 +236,7 @@ func (serv *Server) Start() error{
 
 
 	router := httprouter.New()
-
-		//router.GET("/api")
+		router.GET("/api", serv.Index)
 	return http.ListenAndServe(*listenAddr,serv.userFromHeader(router))
 }
 func (serv *Server) userFromHeader(handler http.Handler) http.Handler{
