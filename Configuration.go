@@ -48,6 +48,7 @@ func newServerConfig(cfgPath string) *WgConf {
 			log.Fatal("Failing to decode ", err)
 		}
 		log.Info("Read server config from file: ", cfgPath)
+		log.Info("------------------------------------------")
 	} else if os.IsNotExist(err) {
 		log.Info("No configuration file found: ", cfgPath)
 		err = config.Write()

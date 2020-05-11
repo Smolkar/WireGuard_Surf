@@ -5,7 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
+	"strconv"
+
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/julienschmidt/httprouter"
 	"github.com/labstack/gommon/log"
@@ -25,39 +26,38 @@ import (
 )
 
 var (
-	dataDir = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
-	listenAddr            = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
+	dataDir    = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
+	listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
 	//natEnabled            = kingpin.Flag("nat", "Whether NAT is enabled or not").Default("true").Bool()
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
-	clientIPRange         = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("172.31.255.0/24").String()
-	authUserHeader        = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
+	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
+	authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
 	tlsCertDir = "."
 	tlsKeyDir  = "."
-	wgLiName = "wg0"
-	wgPort = 5180
+	wgLiName   = "wg0"
+	wgPort     = 5180
+	maxNumberCliConfig = 0
 	//dataDir = "/Config/lib"
 
-
-
 )
+
 type contextKey string
 
 const key = contextKey("user")
 
-type Server struct{
+type Server struct {
 	serverConfPath string
-	mutex sync.RWMutex
-	Config *WgConf
-	IPAddr net.IP
-	clientIPRange *net.IPNet
-	assets http.Handler
+	mutex          sync.RWMutex
+	Config         *WgConf
+	IPAddr         net.IP
+	clientIPRange  *net.IPNet
+	assets         http.Handler
 }
 
-type wgLink struct{
+type wgLink struct {
 	attrs *netlink.LinkAttrs
 }
-
 
 func (w *wgLink) Attrs() *netlink.LinkAttrs {
 	return w.attrs
@@ -69,13 +69,13 @@ func (w *wgLink) Type() string {
 
 func NewServer() *Server {
 	ipAddr, ipNet, err := net.ParseCIDR("10.10.10.0/8")
-	if err != nil{
-		log.Fatal("Error with those IPS:",err)
+	if err != nil {
+		log.Fatal("Error with those IPS:", err)
 	}
 	log.Info("IP Address: %s IP Network: %s", ipAddr, ipNet)
-	err = os.Mkdir(*dataDir,0700)
-	if err != nil{
-		log.Debug(	"Error init dir: ", err)
+	err = os.Mkdir(*dataDir, 0700)
+	if err != nil {
+		log.Debug("Error init dir: ", err)
 	}
 	configPath := path.Join(*dataDir, "conf")
 	log.Debug(configPath, )
@@ -100,44 +100,57 @@ func (serv *Server) UpInterface() error {
 	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)
 	err := netlink.LinkAdd(&link)
-	if os.IsExist(err){
+	if os.IsExist(err) {
 		log.Infof("WireGuard interface %s already exists. REUSING. ", attrs.Name)
-	} else if err != nil{
-		log.Error("Problem with the interface :::",err)
+	} else if err != nil {
+		log.Error("Problem with the interface :::", err)
 		return nil
 	}
 	log.Info("------------------------------------------")
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
 	addr, _ := netlink.ParseAddr("10.10.10.0/8")
 	err = netlink.AddrAdd(&link, addr)
-	if os.IsExist(err){
-		log.Infof("WireGuard inteface %s already has the requested address: ", serv.clientIPRange)
-	}else if err != nil{
+	if os.IsExist(err) {
+		log.Infof("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
+	} else if err != nil {
 		log.Error(err)
 		return err
 	}
 	log.Info("------------------------------------------")
 	log.Info("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
-	if err != nil{
+	if err != nil {
 		log.Errorf("Couldn't bring up %s", attrs.Name)
 	}
 
 	return nil
 }
+func (serv *Server) allocateIP() net.IP {
+	allocated := make(map[string]bool)
+	allocated[serv.IPAddr.String()] = true
 
-func (serv *Server) WhoAmI(w http.ResponseWriter, r *http.Request, _ httprouter.Param)  {
-	user :=  r.Context().Value(key).(string)
-	log.Info(user)
-	err := json.NewEncoder(w).Encode(struct{User string}{user})
-	if err != nil {
-		log.Error(err)
+	for _, cfg := range serv.Config.Users{
+		for _, dev := range cfg.Clients{
+			allocated[dev.IP.String()] =  true
+			}
 	}
-	w.WriteHeader(http.StatusInternalServerError)
 
+	for ip := serv.IPAddr.Mask(serv.clientIPRange.Mask); serv.clientIPRange.Contains(ip);{
+		for i := len(ip) - 1; i >= 0; i-- {
+			ip[i]++
+			if ip[i] > 0 {
+				break
+			}
+		}
+		if !allocated[ip.String()]{
+			log.Debug("Allocated IP: ", ip)
+		return ip
+		}
+	}
+	log.Fatal("Unable to allocate IP.Address range Exhausted")
+	return nil
 }
-
-func (s *Server) enableIPForward() error {
+func (serv *Server) enableIPForward() error {
 	p := "/proc/sys/net/ipv4/ip_forward"
 
 	content, err := ioutil.ReadFile(p)
@@ -155,36 +168,36 @@ func (s *Server) enableIPForward() error {
 	return nil
 }
 
-func (serv *Server) wgConfiguation() error{
+func (serv *Server) wgConfiguation() error {
 	log.Info("------------------------------------------")
 	log.Info("Configuring WireGuard")
 	wg, err := wgctrl.New()
-	if err != nil{
+	if err != nil {
 		log.Error("There is an error configuring WireGuard ::", err)
 	}
 	log.Info("Adding PrivetKey....")
 	keys, err := wgtypes.ParseKey(serv.Config.PrivateKey)
-	if err != nil{
+	if err != nil {
 		log.Error("Couldn't add PrivateKey ::", err)
 	}
 	log.Info("PrivateKey->Successfully added -", serv.Config.PrivateKey)
-	peers := make([]wgtypes.PeerConfig,0)
-	for user, cfg := range serv.Config.Users{
-		for id, dev := range cfg.Clients{
+	peers := make([]wgtypes.PeerConfig, 0)
+	for user, cfg := range serv.Config.Users {
+		for id, dev := range cfg.Clients {
 			pbkey, err := wgtypes.ParseKey(dev.PublicKey)
-			if err != nil{
+			if err != nil {
 				log.Error("Couldn't add PublicKey to peer :: ", err)
 			}
-		AllowedIPs := make([]net.IPNet,1)
-		AllowedIPs[0] = *netlink.NewIPNet(dev.IP)
-		peer := wgtypes.PeerConfig{
-			PublicKey:                   pbkey,
-			ReplaceAllowedIPs:           true,
-			AllowedIPs:                  AllowedIPs,
-		}
-		log.Infof("Adding user ")
-		log.Infof("User: %s, ClientID %s: , Publickey: %s AllowedIPS: %s", user,id,dev.PublicKey,peer.AllowedIPs)
-		peers = append(peers, peer)
+			AllowedIPs := make([]net.IPNet, 1)
+			AllowedIPs[0] = *netlink.NewIPNet(dev.IP)
+			peer := wgtypes.PeerConfig{
+				PublicKey:         pbkey,
+				ReplaceAllowedIPs: true,
+				AllowedIPs:        AllowedIPs,
+			}
+			log.Infof("Adding user ")
+			log.Infof("User: %s, ClientID %s: , Publickey: %s AllowedIPS: %s", user, id, dev.PublicKey, peer.AllowedIPs)
+			peers = append(peers, peer)
 		}
 
 	}
@@ -195,7 +208,7 @@ func (serv *Server) wgConfiguation() error{
 		Peers:        peers,
 	}
 	err = wg.ConfigureDevice("wg-Real1", cfg)
-	if err != nil{
+	if err != nil {
 		log.Fatal("Error configuring device ::", err)
 		return err
 	}
@@ -206,76 +219,153 @@ func (serv *Server) reconfiguringWG() error {
 	log.Infof("Reconfiguring wireGuard interface: wg-Real")
 
 	err := serv.Config.Write()
-	if err != nil{
-		log.Fatal("Error Writing on configuration file ",err)
+	if err != nil {
+		log.Fatal("Error Writing on configuration file ", err)
 
 	}
 	err = serv.wgConfiguation()
-	if err != nil{
+	if err != nil {
 		log.Infof("Error Configuring file ::", err)
 	}
 	return nil
 }
-func (serv *Server) Start() error{
+func (serv *Server) Start() error {
 
 	err := serv.UpInterface()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	log.Info("------------------------------------------")
 	log.Info("Enabling IP Forward....")
 	err = serv.enableIPForward()
-	if err != nil{
+	if err != nil {
 
 		log.Error("Couldnt enable IP Forwarding:  ", err)
 	}
 	err = serv.wgConfiguation()
-	if err != nil{
+	if err != nil {
 		log.Error("Couldnt Configure interface ::", err)
 	}
 
-
 	router := httprouter.New()
-		router.GET("/api", serv.Index)
-	return http.ListenAndServe(*listenAddr,serv.userFromHeader(router))
+	router.GET("/WG/API/index", serv.Index)
+	router.GET("/WG/API/whoami", serv.Idetify)
+	router.POST("WG/API/CREATECLIENT", serv.CreateClient)
+	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
 }
-func (serv *Server) userFromHeader(handler http.Handler) http.Handler{
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+
+func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := r.Header.Get(*authUserHeader)
 		if user == "" {
-			log.Debug("Unauth request")
-			user = "anonymnouys"
+			log.Debug("Unauthenticated request")
+			user = "anonymous"
+
 		}
 		cookie := http.Cookie{
-			Name:       "wgUser",
-			Value:      user,
-			Path:       "/",
+			Name:  "wguser",
+			Value: user,
+			Path:  "/",
 		}
-		http.SetCookie(w,&cookie)
-		ctx := context.WithValue(r.Context(),key, user)
+		http.SetCookie(w, &cookie)
+
+		ctx := context.WithValue(r.Context(), key, user)
 		handler.ServeHTTP(w, r.WithContext(ctx))
 	})
-
 }
-//user := r.Context().Value(key).(string)
-//usercfg := serv.Config.Users[user]
-//if usercfg == nil{
-//	w.WriteHeader(http.StatusNotFound)
-//	return
-//}
-func (serv *Server) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+
+func (serv *Server) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Debug("Serving single page app from URL", r.URL)
 	r.URL.Path = "/"
-	serv.assets.ServeHTTP(w,r)
+	serv.assets.ServeHTTP(w, r)
 }
 
-func main(){
+func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var user = r.Context().Value(key).(string)
+	log.Info(user)
+	err := json.NewEncoder(w).Encode(struct{ User string }{user})
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+}
+func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
+	serv.mutex.Lock()
+	defer serv.mutex.Unlock()
+
+	user := r.Context().Value(key).(string)
+
+	log.Debugf("Creating client :: User %s ", user)
+	cli := serv.Config.GetUSerConfig(user)
+	log.Debugf("User Config: %#v", cli)
+
+	if maxNumberCliConfig > 0 {
+		if len(cli.Clients) >= maxNumberCliConfig{
+			log.Errorf("there too many configs %q", cli.Name)
+
+			e := struct{
+				Error string
+			}{
+				Error: "Max number of configs: " + strconv.Itoa(maxNumberCliConfig),
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			err := json.NewEncoder(w).Encode(e)
+			if err != nil{
+				log.Errorf("There was an API ERRROR - CREATE CLIENT ::", err)
+				w.WriteHeader(http.StatusBadRequest)
+				err := json.NewEncoder(w).Encode(e)
+				if err != nil{
+					log.Errorf("Error enocoding ::", err)
+					return
+				}
+				return
+			}
+			decoder := json.NewDecoder(r.Body)
+			client := &ClientConfig{}
+			err = decoder.Decode(&client)
+			if err != nil{
+				log.Warn(err)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			if client.Name == ""{
+				log.Debugf("No CLIENT NAME found.....USING DEFAULT...\"unnamed Client\"")
+				client.Name = "Unnamed Client"
+			}
+			i := 0
+			for k := range cli.Clients{
+				n, err := strconv.Atoi(k)
+				if err != nil{
+					log.Errorf("THere was an error strc CONV :: ", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				if n > i {
+					i = n
+				}
+			}
+			i += 1
+			ip := serv.allocateIP()
+			client = NewClientConfig(ip,client.Name,client.Info)
+			cli.Clients[strconv.Itoa(i)] = client
+			serv.reconfiguringWG()
+
+			err = json.NewEncoder(w).Encode(client)
+			if err != nil{
+				log.Error(err)
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+
+		}
+
+	}
+}
+func main() {
 
 	s := NewServer()
-	fmt.Println("Complete")
 	s.Start()
 }
-
 
 func getTlsConfig() *tls.Config {
 	caCertFile := filepath.Join(tlsCertDir, "ca.crt")
