@@ -47,11 +47,11 @@ func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httproute
 
 }
 func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	log.Info("Getting Clients")
 	user := r.Context().Value(key).(string)
 	log.Debug(user)
 	clients := map[string]*ClientConfig{}
 	userConfig := s.Config.Users[user]
-	log.Info(userConfig.Clients)
 	if userConfig != nil {
 		clients = userConfig.Clients
 	}
@@ -118,7 +118,9 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 				}
 			}
 			i += 1
+			log.Info("Allocating IP")
 			ip := serv.allocateIP()
+			log.Info("Creating Client Config")
 			client = NewClientConfig(ip, client.Name, client.Info)
 			cli.Clients[strconv.Itoa(i)] = client
 			err = serv.reconfiguringWG()
