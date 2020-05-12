@@ -34,7 +34,7 @@ var (
 	wgLiName           = "wg0"
 	wgPort             = 5180
 	//dataDir = "/Config/lib"
-	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
+	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
 )
 
 type contextKey string
@@ -310,8 +310,8 @@ func (serv *Server) Start() error {
 func main() {
 
 	s := NewServer()
-	s.Start()
 	s.StartAPI()
+	s.Start()
 }
 
 func getTlsConfig() *tls.Config {
