@@ -52,9 +52,9 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 
 	user := r.Context().Value(key).(string)
 
-	log.Debugf("Creating client :: User %s ", user)
+	log.Info("Creating client :: User %s ", user)
 	cli := serv.Config.GetUSerConfig(user)
-	log.Debugf("User Config: %#v", cli)
+	log.Info("User Config: %#v", cli)
 
 	if maxNumberCliConfig > 0 {
 		if len(cli.Clients) >= maxNumberCliConfig {
@@ -85,7 +85,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 				return
 			}
 			if client.Name == "" {
-				log.Debugf("No CLIENT NAME found.....USING DEFAULT...\"unnamed Client\"")
+				log.Info("No CLIENT NAME found.....USING DEFAULT...\"unnamed Client\"")
 				client.Name = "Unnamed Client"
 			}
 			i := 0
@@ -106,7 +106,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			cli.Clients[strconv.Itoa(i)] = client
 			err = serv.reconfiguringWG()
 			if err != nil{
-				log.Info("error Reconfiguring :: ", err)	
+				log.Info("error Reconfiguring :: ", err)
 			}
 			err = json.NewEncoder(w).Encode(client)
 			if err != nil {
