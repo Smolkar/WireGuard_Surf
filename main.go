@@ -299,6 +299,10 @@ func (serv *Server) Start() error {
 	if err != nil {
 		log.Error("Couldnt Configure interface ::", err)
 	}
+	err = serv.natConfigure()
+	if err != nil{
+		log.Error("COuldnt configure NAT :: ", err)
+	}
 	return nil
 
 }
