@@ -230,7 +230,8 @@ func (serv *Server) StartAPI() error {
 	router.GET("/WG/API/index", serv.Index)
 	router.GET("/WG/API/whoami", serv.Idetify)
 	router.POST("/WG/API/createclient", serv.CreateClient)
-	router.GET("/WG/API/getclient", serv.GetClients)
+	router.GET("/WG/API/getclients", serv.GetClients)
+	router.GET("/WG/API/getclient", serv.GetClient)
 
 
 	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
