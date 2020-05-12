@@ -162,7 +162,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 	cli := serv.Config.GetUSerConfig(user)
 	log.Info("User Config: %#v", cli)
 
-	if maxNumberCliConfig > 0 {
+	if maxNumberCliConfig > 10 {
 		if len(cli.Clients) >= maxNumberCliConfig {
 			log.Errorf("there too many configs %q", cli.Name)
 			e := struct {
