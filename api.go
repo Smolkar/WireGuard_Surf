@@ -23,7 +23,7 @@ var (
 	wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
 	wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
 	wgDNS        = kingpin.Flag("wg-dns", "WireGuard client DNS server (optional)").Default("").String()
-
+	maxNumberCliConfig = 10
 	filenameRe = regexp.MustCompile("[^a-zA-Z0-9]+")
 	)
 const key = contextKey("user")

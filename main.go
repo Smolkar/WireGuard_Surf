@@ -31,7 +31,6 @@ var (
 	tlsKeyDir          = "."
 	wgLiName           = "wg0"
 	wgPort             = 5180
-	maxNumberCliConfig = 0
 	//dataDir = "/Config/lib"
 
 )
