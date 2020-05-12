@@ -82,6 +82,7 @@ func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httproute
 
 func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user := r.Context().Value(key).(string)
+	log.Info("Get One client")
 	usercfg := s.Config.Users[user]
 	if usercfg == nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -162,7 +163,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 	cli := serv.Config.GetUSerConfig(user)
 	log.Info("User Config: %#v", cli)
 
-	if maxNumberCliConfig > 10 {
+	//if maxNumberCliConfig > 0 {
 		if len(cli.Clients) >= maxNumberCliConfig {
 			log.Errorf("there too many configs %q", cli.Name)
 			e := struct {
@@ -222,7 +223,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}
-	}
+	//}
 }
 func (serv *Server) StartAPI() error {
 

@@ -1,5 +1,6 @@
 {
  "PrivateKey": "8MCYxF/cNEcpfa47ARO9lsf5V0yGPxxsqhnv88OUeEA=",
  "PublicKey": "pd25dgdjYPH/2cBw1pqcbh3g7n21XZLm5DWwi2ChHAg=",
- "Users": {}
+ "Users": {
+ "Anonymous"{}
 }

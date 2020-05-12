@@ -50,7 +50,7 @@ func newServerConfig(cfgPath string) *WgConf {
 		log.Info("Read server config from file: ", cfgPath)
 		log.Info("------------------------------------------")
 	} else if os.IsNotExist(err) {
-		log.Info("No configuration file found: ", cfgPath)
+		log.Info("No configuration file found:...Creating one ", cfgPath)
 		err = config.Write()
 
 	}
@@ -60,22 +60,7 @@ func newServerConfig(cfgPath string) *WgConf {
 	}
 	return config
 }
-func newClientConfig(ip net.IP, Name, Info string) *ClientConfig {
-	keys, err := wgtypes.GeneratePrivateKey()
-	if err != nil {
-		log.Fatal(err)
-	}
-	config := ClientConfig{
-		Name:       Name,
-		PrivateKey: keys.String(),
-		PublicKey:  keys.PublicKey().String(),
-		IP:         ip,
-		Created:    time.Now().Format(time.RFC3339),
-		Modified:   time.Now().Format(time.RFC3339),
-		Info:       Info,
-	}
-	return &config
-}
+
 func (config *WgConf) Write() error {
 	data, err := json.MarshalIndent(config, "", " ")
 	if err != nil {
