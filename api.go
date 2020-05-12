@@ -51,6 +51,7 @@ func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httproute
 	log.Debug(user)
 	clients := map[string]*ClientConfig{}
 	userConfig := s.Config.Users[user]
+	log.Info(userConfig.Clients)
 	if userConfig != nil {
 		clients = userConfig.Clients
 	}
