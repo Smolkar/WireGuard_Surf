@@ -179,6 +179,7 @@ func (serv *Server) wgConfiguation() error {
 	for user, cfg := range serv.Config.Users {
 		for id, dev := range cfg.Clients {
 			pbkey, err := wgtypes.ParseKey(dev.PublicKey)
+			log.Info("PublicKey TO client - Added")
 			if err != nil {
 				log.Error("Couldn't add PublicKey to peer :: ", err)
 			}
