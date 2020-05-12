@@ -1,14 +1,9 @@
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/json"
-	"strconv"
-
 	assetfs "github.com/elazarl/go-bindata-assetfs"
-	"github.com/julienschmidt/httprouter"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
 	"golang.zx2c4.com/wireguard/wgctrl"
@@ -17,12 +12,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	//"net/http/httputil"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
-	//"time"
+
 )
 
 var (
@@ -33,10 +27,10 @@ var (
 	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
 	authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
-	tlsCertDir = "."
-	tlsKeyDir  = "."
-	wgLiName   = "wg0"
-	wgPort     = 5180
+	tlsCertDir         = "."
+	tlsKeyDir          = "."
+	wgLiName           = "wg0"
+	wgPort             = 5180
 	maxNumberCliConfig = 0
 	//dataDir = "/Config/lib"
 
@@ -44,7 +38,7 @@ var (
 
 type contextKey string
 
-const key = contextKey("user")
+
 
 type Server struct {
 	serverConfPath string
@@ -129,22 +123,22 @@ func (serv *Server) allocateIP() net.IP {
 	allocated := make(map[string]bool)
 	allocated[serv.IPAddr.String()] = true
 
-	for _, cfg := range serv.Config.Users{
-		for _, dev := range cfg.Clients{
-			allocated[dev.IP.String()] =  true
-			}
+	for _, cfg := range serv.Config.Users {
+		for _, dev := range cfg.Clients {
+			allocated[dev.IP.String()] = true
+		}
 	}
 
-	for ip := serv.IPAddr.Mask(serv.clientIPRange.Mask); serv.clientIPRange.Contains(ip);{
+	for ip := serv.IPAddr.Mask(serv.clientIPRange.Mask); serv.clientIPRange.Contains(ip); {
 		for i := len(ip) - 1; i >= 0; i-- {
 			ip[i]++
 			if ip[i] > 0 {
 				break
 			}
 		}
-		if !allocated[ip.String()]{
+		if !allocated[ip.String()] {
 			log.Debug("Allocated IP: ", ip)
-		return ip
+			return ip
 		}
 	}
 	log.Fatal("Unable to allocate IP.Address range Exhausted")
@@ -246,121 +240,10 @@ func (serv *Server) Start() error {
 	if err != nil {
 		log.Error("Couldnt Configure interface ::", err)
 	}
-
-	router := httprouter.New()
-	router.GET("/WG/API/index", serv.Index)
-	router.GET("/WG/API/whoami", serv.Idetify)
-	router.POST("WG/API/CREATECLIENT", serv.CreateClient)
-	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
-}
-
-func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user := r.Header.Get(*authUserHeader)
-		if user == "" {
-			log.Debug("Unauthenticated request")
-			user = "anonymous"
-
-		}
-		cookie := http.Cookie{
-			Name:  "wguser",
-			Value: user,
-			Path:  "/",
-		}
-		http.SetCookie(w, &cookie)
-
-		ctx := context.WithValue(r.Context(), key, user)
-		handler.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func (serv *Server) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	log.Debug("Serving single page app from URL", r.URL)
-	r.URL.Path = "/"
-	serv.assets.ServeHTTP(w, r)
-}
-
-func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var user = r.Context().Value(key).(string)
-	log.Info(user)
-	err := json.NewEncoder(w).Encode(struct{ User string }{user})
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	return nil
 
 }
-func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params){
-	serv.mutex.Lock()
-	defer serv.mutex.Unlock()
 
-	user := r.Context().Value(key).(string)
-
-	log.Debugf("Creating client :: User %s ", user)
-	cli := serv.Config.GetUSerConfig(user)
-	log.Debugf("User Config: %#v", cli)
-
-	if maxNumberCliConfig > 0 {
-		if len(cli.Clients) >= maxNumberCliConfig{
-			log.Errorf("there too many configs %q", cli.Name)
-
-			e := struct{
-				Error string
-			}{
-				Error: "Max number of configs: " + strconv.Itoa(maxNumberCliConfig),
-			}
-			w.WriteHeader(http.StatusBadRequest)
-			err := json.NewEncoder(w).Encode(e)
-			if err != nil{
-				log.Errorf("There was an API ERRROR - CREATE CLIENT ::", err)
-				w.WriteHeader(http.StatusBadRequest)
-				err := json.NewEncoder(w).Encode(e)
-				if err != nil{
-					log.Errorf("Error enocoding ::", err)
-					return
-				}
-				return
-			}
-			decoder := json.NewDecoder(r.Body)
-			client := &ClientConfig{}
-			err = decoder.Decode(&client)
-			if err != nil{
-				log.Warn(err)
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			if client.Name == ""{
-				log.Debugf("No CLIENT NAME found.....USING DEFAULT...\"unnamed Client\"")
-				client.Name = "Unnamed Client"
-			}
-			i := 0
-			for k := range cli.Clients{
-				n, err := strconv.Atoi(k)
-				if err != nil{
-					log.Errorf("THere was an error strc CONV :: ", err)
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				if n > i {
-					i = n
-				}
-			}
-			i += 1
-			ip := serv.allocateIP()
-			client = NewClientConfig(ip,client.Name,client.Info)
-			cli.Clients[strconv.Itoa(i)] = client
-			serv.reconfiguringWG()
-
-			err = json.NewEncoder(w).Encode(client)
-			if err != nil{
-				log.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-
-		}
-
-	}
-}
 func main() {
 
 	s := NewServer()

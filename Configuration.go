@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	log "github.com/labstack/gommon/log"
+	"github.com/labstack/gommon/log"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"io/ioutil"
 	"net"
