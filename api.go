@@ -3,12 +3,29 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/labstack/gommon/log"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
+	"github.com/skip2/go-qrcode"
 )
 
+var (
+	//clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
+	//authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
+	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
+	wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg0").String()
+	wgListenPort = kingpin.Flag("wg-listen-port", "WireGuard UDP port to listen to").Default("51820").Int()
+	wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
+	wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
+	wgDNS        = kingpin.Flag("wg-dns", "WireGuard client DNS server (optional)").Default("").String()
+
+	filenameRe = regexp.MustCompile("[^a-zA-Z0-9]+")
+	)
 const key = contextKey("user")
 
 func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
@@ -60,6 +77,78 @@ func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httproute
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user := r.Context().Value(key).(string)
+	usercfg := s.Config.Users[user]
+	if usercfg == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	client := usercfg.Clients[ps.ByName("client")]
+	if client == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	allowedIPs := strings.Join(*wgAllowedIPs, ",")
+
+	dns := ""
+	if *wgDNS != "" {
+		dns = fmt.Sprint("DNS = ", *wgDNS)
+	}
+
+	configData := fmt.Sprintf(`[Interface]
+%s
+Address = %s
+PrivateKey = %s
+[Peer]
+PublicKey = %s
+AllowedIPs = %s
+Endpoint = %s
+`, dns, client.IP.String(), client.PrivateKey, s.Config.PublicKey, allowedIPs, *wgEndpoint)
+
+	format := r.URL.Query().Get("format")
+
+	if format == "qrcode" {
+		png, err := qrcode.Encode(configData, qrcode.Medium, 220)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(png)
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	if format == "config" {
+		filename := fmt.Sprintf("%s.conf", filenameRe.ReplaceAllString(client.Name, "_"))
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+		w.Header().Set("Content-Type", "application/config")
+		w.WriteHeader(http.StatusOK)
+		_, err := fmt.Fprint(w, configData)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	err := json.NewEncoder(w).Encode(client)
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
