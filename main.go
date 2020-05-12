@@ -220,10 +220,10 @@ func (serv *Server) natConfigure() error{
 
 	conn := nftables.Conn{NetNS: int(ns)}
 
-	log.Debug("Flushing nftable rulesets")
+	log.Info("Flushing nftable rulesets")
 	conn.FlushRuleset()
 
-	log.Debug("Setting up nftable rules for ip masquerading")
+	log.Info("Setting up nftable rules for ip masquerading")
 
 	nat := conn.AddTable(&nftables.Table{
 		Family: nftables.TableFamilyIPv4,
