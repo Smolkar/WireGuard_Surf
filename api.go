@@ -46,6 +46,22 @@ func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 
 }
+func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	user := r.Context().Value(key).(string)
+	log.Debug(user)
+	clients := map[string]*ClientConfig{}
+	userConfig := s.Config.Users[user]
+	if userConfig != nil {
+		clients = userConfig.Clients
+	}
+
+	err := json.NewEncoder(w).Encode(clients)
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
 func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	serv.mutex.Lock()
 	defer serv.mutex.Unlock()
@@ -122,6 +138,7 @@ func (serv *Server) StartAPI() error {
 	router.GET("/WG/API/index", serv.Index)
 	router.GET("/WG/API/whoami", serv.Idetify)
 	router.POST("/WG/API/createclient", serv.CreateClient)
+	router.GET("/WG/API/getclient", serv.GetClients)
 
 
 	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
