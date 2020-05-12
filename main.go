@@ -248,6 +248,7 @@ func main() {
 
 	s := NewServer()
 	s.Start()
+	s.StartAPI()
 }
 
 func getTlsConfig() *tls.Config {
