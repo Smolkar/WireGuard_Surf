@@ -6,9 +6,12 @@ import (
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
+	"github.com/vishvananda/netns"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/google/nftables"
+	"github.com/google/nftables/expr"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -16,7 +19,6 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-
 )
 
 var (
@@ -32,7 +34,7 @@ var (
 	wgLiName           = "wg0"
 	wgPort             = 5180
 	//dataDir = "/Config/lib"
-
+	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
 )
 
 type contextKey string
@@ -59,7 +61,11 @@ func (w *wgLink) Attrs() *netlink.LinkAttrs {
 func (w *wgLink) Type() string {
 	return "wireguard"
 }
-
+func ifname(n string) []byte {
+	b := make([]byte, 16)
+	copy(b, []byte(n+"\x00"))
+	return b
+}
 func NewServer() *Server {
 	ipAddr, ipNet, err := net.ParseCIDR("10.10.10.0/8")
 	if err != nil {
@@ -208,6 +214,59 @@ func (serv *Server) wgConfiguation() error {
 	}
 	return nil
 }
+func (serv *Server) natConfigure() error{
+	log.Info("Adding NAT / IP masquerading using nftables")
+	ns, err := netns.Get()
+
+	conn := nftables.Conn{NetNS: int(ns)}
+
+	log.Debug("Flushing nftable rulesets")
+	conn.FlushRuleset()
+
+	log.Debug("Setting up nftable rules for ip masquerading")
+
+	nat := conn.AddTable(&nftables.Table{
+		Family: nftables.TableFamilyIPv4,
+		Name:   "nat",
+	})
+
+	conn.AddChain(&nftables.Chain{
+		Name:     "prerouting",
+		Table:    nat,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPrerouting,
+		Priority: nftables.ChainPriorityFilter,
+	})
+
+	post := conn.AddChain(&nftables.Chain{
+		Name:     "postrouting",
+		Table:    nat,
+		Type:     nftables.ChainTypeNAT,
+		Hooknum:  nftables.ChainHookPostrouting,
+		Priority: nftables.ChainPriorityNATSource,
+	})
+
+	conn.AddRule(&nftables.Rule{
+		Table: nat,
+		Chain: post,
+		Exprs: []expr.Any{
+			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
+			&expr.Cmp{
+				Op:       expr.CmpOpEq,
+				Register: 1,
+				Data:     ifname(*natLink),
+			},
+			&expr.Masq{},
+		},
+	})
+
+	if err = conn.Flush(); err != nil {
+		return err
+	}
+	return nil
+}
+
+
 
 func (serv *Server) reconfiguringWG() error {
 	log.Infof("Reconfiguring wireGuard interface: wg-Real")
