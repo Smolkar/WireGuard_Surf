@@ -104,8 +104,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			ip := serv.allocateIP()
 			client = NewClientConfig(ip, client.Name, client.Info)
 			cli.Clients[strconv.Itoa(i)] = client
-			serv.reconfiguringWG()
-
+			err = serv.reconfiguringWG()	
 			err = json.NewEncoder(w).Encode(client)
 			if err != nil {
 				log.Error(err)
