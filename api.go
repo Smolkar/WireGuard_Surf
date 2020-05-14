@@ -94,7 +94,7 @@ func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
+	log.Info("AllowedIP's COnfig")
 	allowedIPs := strings.Join(*wgAllowedIPs, ",")
 
 	dns := ""
@@ -111,7 +111,7 @@ PublicKey = %s
 AllowedIPs = %s
 Endpoint = %s
 `, dns, client.IP.String(), client.PrivateKey, s.Config.PublicKey, allowedIPs, *wgEndpoint)
-
+	log.Info(configData)
 	format := r.URL.Query().Get("format")
 
 	if format == "qrcode" {
@@ -161,7 +161,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 
 	log.Info("Creating client :: User %s ", user)
 	cli := serv.Config.GetUSerConfig(user)
-	log.Info("User Config: %#v", cli)
+	log.Info("User Config: %#v", cli.Clients, cli.Name)
 
 	if maxNumberCliConfig > 0 {
 		if len(cli.Clients) >= maxNumberCliConfig {
@@ -232,7 +232,7 @@ func (serv *Server) StartAPI() error {
 	router.GET("/WG/API/index", serv.Index)
 	router.GET("/WG/API/whoami", serv.Idetify)
 	router.POST("/WG/API/createclient", serv.CreateClient)
-	router.GET("/WG/API/getclients", serv.GetClients)
+		router.GET("/WG/API/getclients", serv.GetClients)
 	router.GET("/WG/API/getclient", serv.GetClient)
 
 

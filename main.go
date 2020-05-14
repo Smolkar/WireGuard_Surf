@@ -211,7 +211,7 @@ func (serv *Server) wgConfiguation() error {
 	wgAllowedIPs[0] = *netlink.NewIPNet(ip)
 	peerA := wgtypes.PeerConfig{
 		PublicKey:         peer_key,
-		ReplaceAllowedIPs: true,
+		ReplaceAllowedIPs: false,
 		PersistentKeepaliveInterval: &pers,
 
 	}
