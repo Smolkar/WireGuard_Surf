@@ -52,7 +52,8 @@ MAC —-> https://apps.apple.com/bg/app/wireguard/id1451685025?mt=12
 Windows ——>https://www.wireguard.com/install/
 
 In the client create a new empty tunnel with the following scrip
-[Interface]
+
+`[Interface]
 
 PrivateKey = xxxxxxxxxxxxxx=
 
@@ -63,11 +64,12 @@ Address = 10.0.0.2/32
 DNS = 8.8.8.8
 
 [Peer]
+
 PublicKey = <server_public_key>
 
 AllowedIPs = 0.0.0.0/0
 
-Endpoint = <server_ip>:51820
+Endpoint = <server_ip>:51820`
 
 #### Save your client public key. And close the tunnel configuration dialog.
 
