@@ -32,7 +32,7 @@ var (
 	tlsCertDir         = "."
 	tlsKeyDir          = "."
 	wgLiName           = "wg0"
-	wgPort             = 5180
+	wgPort             = 51820
 	//dataDir = "/Config/lib"
 	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
 
