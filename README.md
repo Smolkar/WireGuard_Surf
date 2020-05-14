@@ -1,41 +1,41 @@
-### WireGuard_Surf
-##It is not ready yet!  I haven’t implemented the configuration of the DNS’s, API endpoints, Iptables rules and some other stuff
+# WireGuard_Surf
+### It is not ready yet!  I haven’t implemented the configuration of the DNS’s, API endpoints, Iptables rules and some other stuff
 
-##This project has been tested on Ubuntu!
+### This project has been tested on Ubuntu!
 
 
-###SETTIN UP SERVER
-##How to:
-#On a Ubuntu server:
-`<addr>` sudo -s
+## SETTIN UP SERVER
+### How to:
+# On a Ubuntu server:
+`sudo -s`
 
-apt-get update
-apt-get upgrade
+`apt-get update`
+`apt-get upgrade`
 
-Installing latest Go tools
-wget https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
+### Installing latest Go tools:
+`wget https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
 tar -C /usr/local -xzf go1.14.2.linux-amd64.tar.gz
-Rm go1.14.2.linux-amd64.tar.gz 
+Rm go1.14.2.linux-amd64.tar.gz` 
 
-Setting Go global variables
+### Set-up Go global variables
 
-export PATH=$PATH:/usr/local/go/bin
-export GOBIN=$GOPATH/bin
+`export PATH=$PATH:/usr/local/go/bin
+export GOBIN=$GOPATH/bin`
 
-Getting WireGuard
-sudo add-apt-repository ppa:wireguard/wireguard
+### Getting WireGuard
+`sudo add-apt-repository ppa:wireguard/wireguard
 sudo apt-get update
-sudo apt-get install wire-guard
+sudo apt-get install wire-guard`
 
-Clone WireGuard_Surf
-Git clone https://github.com/Smolkar/WireGuard_Surf.git
+### Clone WireGuard_Surf
+`git clone https://github.com/Smolkar/WireGuard_Surf.git`
 
-Navigate to the project folder
-
-Cd WireGuard_Surf
-Go get
-go build main.go Configuration.go api.go bindata.go
-./main
+### Navigate to the project folder and install dependencies
+`cd WireGuard_Surf
+go get`
+### Building and running 
+`go build main.go Configuration.go api.go bindata.go
+./main`
 
 Write down server pubic key. Or you can check it up later in “conf” file in the main folder.
 
