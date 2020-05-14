@@ -212,7 +212,6 @@ func (serv *Server) wgConfiguation() error {
 	peerA := wgtypes.PeerConfig{
 		PublicKey:         peer_key,
 		ReplaceAllowedIPs: true,
-		AllowedIPs:        wgAllowedIPs,
 		PersistentKeepaliveInterval: &pers,
 
 	}
