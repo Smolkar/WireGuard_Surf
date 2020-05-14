@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
@@ -19,7 +20,6 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 var (
@@ -65,7 +65,9 @@ func (w *wgLink) Type() string {
 }
 func ifname(n string) []byte {
 	b := make([]byte, 16)
-	copy(b, []byte(n+"\x00"))
+	copy(b, n+"\x00")
+	fmt.Println(n)
+	fmt.Println(b)
 	return b
 }
 func NewServer() *Server {
@@ -203,20 +205,20 @@ func (serv *Server) wgConfiguation() error {
 		}
 
 	}
-	pers := time.Duration(21)
-	log.Info("adding ME")
-	ip := net.ParseIP("10.0.0.2/8")
-	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
-	wgAllowedIPs := make([]net.IPNet,1)
-	wgAllowedIPs[0] = *netlink.NewIPNet(ip)
-	peerA := wgtypes.PeerConfig{
-		PublicKey:         peer_key,
-		ReplaceAllowedIPs: false,
-		PersistentKeepaliveInterval: &pers,
-
-	}
-
-	peers = append(peers, peerA)
+	//pers := time.Duration(21)
+	//log.Info("adding ME")
+	//ip := net.ParseIP("10.0.0.2/8")
+	//peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
+	//wgAllowedIPs := make([]net.IPNet,1)
+	//wgAllowedIPs[0] = *netlink.NewIPNet(ip)
+	//peerA := wgtypes.PeerConfig{
+	//	PublicKey:         peer_key,
+	//	ReplaceAllowedIPs: false,
+	//	PersistentKeepaliveInterval: &pers,
+	//
+	//}
+	//
+	//peers = append(peers, peerA)
 	log.Info("successfuly added ME")
 	cfg := wgtypes.Config{
 		PrivateKey:   &keys,
@@ -276,7 +278,7 @@ func (serv *Server) natConfigure() error{
 			&expr.Masq{},
 		},
 	})
-
+log.Info("NAT Ready")
 	if err = conn.Flush(); err != nil {
 		return err
 	}

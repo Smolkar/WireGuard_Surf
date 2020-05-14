@@ -229,11 +229,11 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 func (serv *Server) StartAPI() error {
 
 	router := httprouter.New()
-	router.GET("/WG/API/index", serv.Index)
-	router.GET("/WG/API/whoami", serv.Idetify)
-	router.POST("/WG/API/createclient", serv.CreateClient)
-		router.GET("/WG/API/getclients", serv.GetClients)
-	router.GET("/WG/API/getclient", serv.GetClient)
+	router.GET("/index", serv.Index)
+	router.GET("/whoami", serv.Idetify)
+	//router.POST("/WG/API/createclient", serv.CreateClient)
+	//router.GET("/WG/API/getclients", serv.GetClients)
+	//router.GET("/WG/API/getclient/:user/clients", serv.GetClient)
 
 
 	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
