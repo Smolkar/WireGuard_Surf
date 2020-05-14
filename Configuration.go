@@ -45,16 +45,16 @@ func newServerConfig(cfgPath string) *WgConf {
 	file, err := os.Open(filepath.Clean(cfgPath))
 	if err == nil {
 		if err = json.NewDecoder(file).Decode(config); err != nil {
-			log.Fatal("Failing to decode ", err)
+			log.Fatal("Failing to decode :: ", err)
 		}
-		log.Info("Read server config from file: ", cfgPath)
+		log.Info("Read server config from file : ", cfgPath)
 		log.Info("------------------------------------------")
 	} else if os.IsNotExist(err) {
-		log.Info("No configuration file found:...Creating one ", cfgPath)
+		log.Info("No configuration file found  ::  Creating one ", cfgPath)
 		err = config.Write()
 
 	}
-	log.Info("PublicKey: ", config.PublicKey, "PrivateKey", config.PrivateKey)
+	log.Info("PublicKey: ", config.PublicKey, "     PrivateKey: ", config.PrivateKey)
 	if err != nil {
 		log.Info("Error", err)
 	}
@@ -85,7 +85,7 @@ func (config *WgConf) GetUSerConfig(user string) *UserConf {
 func NewClientConfig(ip net.IP, Name, Info string) *ClientConfig {
 	keys, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
-		log.Fatal("Failed to generate keys: ", err)
+		log.Fatal("Failed to generate keys :: ", err)
 	}
 	config := ClientConfig{
 		Name:       Name,

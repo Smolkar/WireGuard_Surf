@@ -81,7 +81,7 @@ func NewServer() *Server {
 		log.Debug("Error init dir: ", err)
 	}
 	configPath := path.Join(*dataDir, "conf")
-	log.Debug(configPath, )
+	log.Info(configPath)
 	config := newServerConfig(configPath)
 
 	assets := http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: ""})
