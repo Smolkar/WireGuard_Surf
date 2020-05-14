@@ -212,7 +212,7 @@ func (serv *Server) wgConfiguation() error {
 		ReplaceAllowedIPs: true,
 		AllowedIPs:        wgAllowedIPs,
 		PersistentKeepaliveInterval: &pers,
-		
+
 	}
 
 	peers = append(peers, peerA)
@@ -315,11 +315,11 @@ func (serv *Server) Start() error {
 	if err != nil {
 		log.Error("Couldnt Configure interface ::", err)
 	}
-	//err = serv.natConfigure()
-	//if err != nil{
-	//	log.Error("COuldnt configure NAT :: ", err)
-	//}
-	//return nil
+	err = serv.natConfigure()
+	if err != nil{
+		log.Error("COuldnt configure NAT :: ", err)
+	}
+	return nil
 
 }
 
