@@ -216,7 +216,7 @@ func (serv *Server) wgConfiguation() error {
 	//}
 	//
 	//peers = append(peers, peerA)
-	log.Info("successfuly added ME")
+	//log.Info("successfuly added ME")
 	cfg := wgtypes.Config{
 		PrivateKey:   &keys,
 		ListenPort:   &wgPort,
