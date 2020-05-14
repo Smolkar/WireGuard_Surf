@@ -19,6 +19,7 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 var (
@@ -26,7 +27,7 @@ var (
 	listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
 	//natEnabled            = kingpin.Flag("nat", "Whether NAT is enabled or not").Default("true").Bool()
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
-	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
+	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.0.0.0/8").String()
 	authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
 	tlsCertDir         = "."
@@ -35,6 +36,7 @@ var (
 	wgPort             = 5180
 	//dataDir = "/Config/lib"
 	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
+
 )
 
 type contextKey string
@@ -67,7 +69,7 @@ func ifname(n string) []byte {
 	return b
 }
 func NewServer() *Server {
-	ipAddr, ipNet, err := net.ParseCIDR("10.10.10.0/8")
+	ipAddr, ipNet, err := net.ParseCIDR("10.0.0.1/8")
 	if err != nil {
 		log.Fatal("Error with those IPS:", err)
 	}
@@ -94,7 +96,7 @@ func NewServer() *Server {
 
 func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
-	attrs.Name = "wg-Real1"
+	attrs.Name = "wg0"
 	link := wgLink{attrs: &attrs}
 	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)
@@ -107,7 +109,7 @@ func (serv *Server) UpInterface() error {
 	}
 	log.Info("------------------------------------------")
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
-	addr, _ := netlink.ParseAddr("10.10.10.0/8")
+	addr, _ := netlink.ParseAddr("10.0.0.0/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err) {
 		log.Infof("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
@@ -201,13 +203,27 @@ func (serv *Server) wgConfiguation() error {
 		}
 
 	}
+	pers := time.Duration(21)
+	log.Info("adding ME")
+	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
+	wgAllowedIPs := make([]net.IPNet,1)
+	peerA := wgtypes.PeerConfig{
+		PublicKey:         peer_key,
+		ReplaceAllowedIPs: true,
+		AllowedIPs:        wgAllowedIPs,
+		PersistentKeepaliveInterval: &pers,
+		
+	}
+
+	peers = append(peers, peerA)
+	log.Info("successfuly added ME")
 	cfg := wgtypes.Config{
 		PrivateKey:   &keys,
 		ListenPort:   &wgPort,
 		ReplacePeers: true,
 		Peers:        peers,
 	}
-	err = wg.ConfigureDevice("wg-Real1", cfg)
+	err = wg.ConfigureDevice("wg0", cfg)
 	if err != nil {
 		log.Fatal("Error configuring device ::", err)
 		return err
@@ -269,7 +285,7 @@ func (serv *Server) natConfigure() error{
 
 
 func (serv *Server) reconfiguringWG() error {
-	log.Infof("Reconfiguring wireGuard interface: wg-Real")
+	log.Infof("Reconfiguring wireGuard interface: wg0")
 
 	err := serv.Config.Write()
 	if err != nil {
@@ -299,11 +315,11 @@ func (serv *Server) Start() error {
 	if err != nil {
 		log.Error("Couldnt Configure interface ::", err)
 	}
-	err = serv.natConfigure()
-	if err != nil{
-		log.Error("COuldnt configure NAT :: ", err)
-	}
-	return nil
+	//err = serv.natConfigure()
+	//if err != nil{
+	//	log.Error("COuldnt configure NAT :: ", err)
+	//}
+	//return nil
 
 }
 
