@@ -326,8 +326,9 @@ func (serv *Server) Start() error {
 func main() {
 
 	s := NewServer()
-	s.StartAPI()
+
 	s.Start()
+	s.StartAPI()
 }
 
 func getTlsConfig() *tls.Config {
