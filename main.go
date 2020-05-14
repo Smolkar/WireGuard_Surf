@@ -3,16 +3,15 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
+	"github.com/google/nftables"
+	"github.com/google/nftables/expr"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"github.com/google/nftables"
-	"github.com/google/nftables/expr"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -66,8 +65,6 @@ func (w *wgLink) Type() string {
 func ifname(n string) []byte {
 	b := make([]byte, 16)
 	copy(b, n+"\x00")
-	fmt.Println(n)
-	fmt.Println(b)
 	return b
 }
 func NewServer() *Server {
