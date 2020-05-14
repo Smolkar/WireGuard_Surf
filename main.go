@@ -109,7 +109,7 @@ func (serv *Server) UpInterface() error {
 	}
 	log.Info("------------------------------------------")
 	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
-	addr, _ := netlink.ParseAddr("10.0.0.0/8")
+	addr, _ := netlink.ParseAddr("10.0.0.1/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err) {
 		log.Infof("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
@@ -205,8 +205,10 @@ func (serv *Server) wgConfiguation() error {
 	}
 	pers := time.Duration(21)
 	log.Info("adding ME")
+	ip := net.ParseIP("10.0.0.2/8")
 	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
 	wgAllowedIPs := make([]net.IPNet,1)
+	wgAllowedIPs[0] = *netlink.NewIPNet(ip)
 	peerA := wgtypes.PeerConfig{
 		PublicKey:         peer_key,
 		ReplaceAllowedIPs: true,
