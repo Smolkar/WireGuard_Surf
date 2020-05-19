@@ -41,6 +41,7 @@ Add those lines, at the bottom of the file:
 
 ### Navigate to the project folder and install dependencies
 `cd WireGuard_Surf`
+
 `go get`
 
 ### Building and running 
