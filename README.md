@@ -20,8 +20,14 @@
 rm go1.14.2.linux-amd64.tar.gz` 
 
 ### Set-up Go global variables
+Edit .bashrc 
+`vim ~/.bashrc`
+Add those lines, at the bottom of the file: 
 
-`export PATH=$PATH:/usr/local/go/bin
+`
+#go
+export PATH=$PATH:/usr/local/go/bin
+
 export GOBIN=$GOPATH/bin`
 
 ### Getting WireGuard
@@ -75,7 +81,7 @@ Endpoint = <server_ip>:51820`
 
 ### On a separate ssh shell on the server
 
-`wg set wg0 peer <Client_public_Key_you_have saved_earlier> endpoint <your_pub_IP>:59608 persistent-keepalive 21 allowed-ips 0.0.0.0/0`
+`wg set wg0 peer <Client_public_Key_you_have saved_earlier> persistent-keepalive 21 allowed-ips 0.0.0.0/0`
 
 Activate your tunnel from the application on your PC.
 
