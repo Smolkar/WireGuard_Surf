@@ -24,30 +24,30 @@ Edit .bashrc
 `vim ~/.bashrc`
 Add those lines, at the bottom of the file: 
 
-`
-#go
-export PATH=$PATH:/usr/local/go/bin
+`#go`
+`export PATH=$PATH:/usr/local/go/bin
 
-export GOBIN=$GOPATH/bin`
+`export GOBIN=$GOPATH/bin`
 
 ### Getting WireGuard
-`sudo add-apt-repository ppa:wireguard/wireguard
+`sudo add-apt-repository ppa:wireguard/wireguard`
 
-sudo apt-get update
+`sudo apt-get update`
 
-sudo apt-get install wireguard`
+`sudo apt-get install wireguard`
 
 ### Clone WireGuard_Surf
 `git clone https://github.com/Smolkar/WireGuard_Surf.git`
 
 ### Navigate to the project folder and install dependencies
-`cd WireGuard_Surf
+`cd WireGuard_Surf`
+`go get`
 
-go get`
 ### Building and running 
-`go build main.go Configuration.go api.go bindata.go
 
-./main`
+` go build main.go Configuration.go api.go bindata.go `
+
+` ./main `
 
 Write down server pubic key. Or you can check it up later in “conf” file in the main folder.
 
@@ -59,23 +59,23 @@ Windows ——>https://www.wireguard.com/install/
 
 In the client create a new empty tunnel with the following scrip
 
-`[Interface]
+`[Interface]`
 
-PrivateKey = xxxxxxxxxxxxxx=
+`PrivateKey = xxxxxxxxxxxxxx=`
 
-ListenPort = 59608
+`ListenPort = 59608`
 
-Address = 10.0.0.2/32
+`Address = 10.0.0.2/32`
 
-DNS = 8.8.8.8
+`DNS = 8.8.8.8`
 
-[Peer]
+`[Peer]`
 
-PublicKey = <server_public_key>
+`PublicKey = <server_public_key>`
 
-AllowedIPs = 0.0.0.0/0
+`AllowedIPs = 0.0.0.0/0`
 
-Endpoint = <server_ip>:51820`
+`Endpoint = <server_ip>:51820`
 
 #### Save your client public key. And close the tunnel configuration dialog.
 
