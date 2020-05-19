@@ -21,11 +21,13 @@ rm go1.14.2.linux-amd64.tar.gz`
 
 ### Set-up Go global variables
 Edit .bashrc 
+
 `vim ~/.bashrc`
+
 Add those lines, at the bottom of the file: 
 
 `#go`
-`export PATH=$PATH:/usr/local/go/bin
+`export PATH=$PATH:/usr/local/go/bin`
 
 `export GOBIN=$GOPATH/bin`
 
