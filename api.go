@@ -1,4 +1,4 @@
-package main
+	package main
 
 import (
 	"context"
@@ -71,6 +71,8 @@ func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httproute
 	userConfig := s.Config.Users[user]
 	if userConfig != nil {
 		clients = userConfig.Clients
+	}else{
+		log.Info("This User have no clients")
 	}
 
 	err := json.NewEncoder(w).Encode(clients)
@@ -88,7 +90,7 @@ func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
+	log.Info("Client :::")
 	client := usercfg.Clients[ps.ByName("client")]
 	if client == nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -225,15 +227,35 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		}
 	}
 }
+	func (s *Server) withAuth(handler httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			log.Debug("Auth required")
+
+			user := r.Context().Value(key)
+			if user == nil {
+				log.Error("Error getting username from request context")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if user != ps.ByName("user") {
+				log.Infof("user ",user, " path: ", r.URL.Path, " Unauthorized access")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			handler(w, r, ps)
+		}
+	}
 
 func (serv *Server) StartAPI() error {
 
 	router := httprouter.New()
 	router.GET("/index", serv.Index)
 	router.GET("/whoami", serv.Idetify)
-	//router.POST("/WG/API/createclient", serv.CreateClient)
-	//router.GET("/WG/API/getclients", serv.GetClients)
-	//router.GET("/WG/API/getclient/:user/clients", serv.GetClient)
+	router.POST("/WG/API/createclient/:user/clients", serv.withAuth(serv.CreateClient))
+	router.GET("/WG/API/getclients/:user/clients",serv.withAuth(serv.GetClients))
+	router.GET("/WG/API/getclient/:user/clients/:client", serv.withAuth(serv.GetClient))
 
 
 	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
