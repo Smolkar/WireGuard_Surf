@@ -19,6 +19,7 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 var (
@@ -39,8 +40,6 @@ var (
 )
 
 type contextKey string
-
-
 
 type Server struct {
 	serverConfPath string
@@ -202,21 +201,21 @@ func (serv *Server) wgConfiguation() error {
 		}
 
 	}
-	//pers := time.Duration(21)
-	//log.Info("adding ME")
-	//ip := net.ParseIP("10.0.0.2/8")
-	//peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
-	//wgAllowedIPs := make([]net.IPNet,1)
-	//wgAllowedIPs[0] = *netlink.NewIPNet(ip)
-	//peerA := wgtypes.PeerConfig{
-	//	PublicKey:         peer_key,
-	//	ReplaceAllowedIPs: false,
-	//	PersistentKeepaliveInterval: &pers,
-	//
-	//}
-	//
-	//peers = append(peers, peerA)
-	//log.Info("successfuly added ME")
+	pers := time.Duration(21)
+	log.Info("adding ME")
+	ip := net.ParseIP("10.0.0.2/8")
+	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
+	wgAllowedIPs := make([]net.IPNet,1)
+	wgAllowedIPs[0] = *netlink.NewIPNet(ip)
+	peerA := wgtypes.PeerConfig{
+		PublicKey:         peer_key,
+		ReplaceAllowedIPs: false,
+		PersistentKeepaliveInterval: &pers,
+
+	}
+
+	peers = append(peers, peerA)
+	log.Info("successfuly added ME")
 	cfg := wgtypes.Config{
 		PrivateKey:   &keys,
 		ListenPort:   &wgPort,
@@ -282,8 +281,6 @@ log.Info("NAT Ready")
 	return nil
 }
 
-
-
 func (serv *Server) reconfiguringWG() error {
 	log.Infof("Reconfiguring wireGuard interface: wg0")
 
@@ -329,6 +326,7 @@ func main() {
 
 	s.Start()
 	s.StartAPI()
+
 }
 
 func getTlsConfig() *tls.Config {

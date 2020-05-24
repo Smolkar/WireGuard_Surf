@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5aad2ede-8dfc-4e26-93ef-80fd33704485" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Configuration.go" beforeDir="false" afterPath="$PROJECT_DIR$/Configuration.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api.go" beforeDir="false" afterPath="$PROJECT_DIR$/api.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -26,6 +27,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
@@ -48,5 +50,11 @@
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
     <proxy>direct</proxy>
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="560" y="207" key="#Inspections" timestamp="1589913347296">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state x="560" y="207" key="#Inspections/0.0.1920.1080/-1440.0.1440.900@0.0.1920.1080" timestamp="1589913347296" />
   </component>
 </project>

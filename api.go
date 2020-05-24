@@ -1,18 +1,19 @@
 	package main
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"github.com/labstack/gommon/log"
-	"gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
-	"github.com/skip2/go-qrcode"
-)
+	import (
+		"context"
+		"encoding/json"
+		"fmt"
+		"github.com/julienschmidt/httprouter"
+		"github.com/labstack/gommon/log"
+		"github.com/skip2/go-qrcode"
+		"gopkg.in/alecthomas/kingpin.v2"
+		"net/http"
+		"regexp"
+		"strconv"
+		"strings"
+		"time"
+	)
 
 var (
 	//clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
@@ -27,7 +28,7 @@ var (
 	filenameRe = regexp.MustCompile("[^a-zA-Z0-9]+")
 	)
 const key = contextKey("user")
-
+//----------API: Getting user from header. Currently there is only possibility for a user anonymous----------
 func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := r.Header.Get(*authUserHeader)
@@ -47,12 +48,36 @@ func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
 		handler.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+	//----------API: Authentication----------
+	func (s *Server) withAuth(handler httprouter.Handle) httprouter.Handle {
+		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+			log.Debug("Auth required")
+
+			user := r.Context().Value(key)
+			if user == nil {
+				log.Error("Error getting username from request context")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			if user != ps.ByName("user") {
+				log.Info("user "," ::: Unauthorized access")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}else{
+				handler(w,r,ps)
+			}
+
+		}
+	}
 
 func (serv *Server) Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Debug("Serving single page app from URL", r.URL)
 	r.URL.Path = "/"
 	serv.assets.ServeHTTP(w, r)
 }
+
+//----------API-Endpoint: Get current user name----------
 func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var user = r.Context().Value(key).(string)
 	log.Info(user)
@@ -63,12 +88,13 @@ func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 
 }
-func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+//----------API-Endpoint: Get all clients of a user----------
+func (serv *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	log.Info("Getting Clients")
 	user := r.Context().Value(key).(string)
 	log.Debug(user)
 	clients := map[string]*ClientConfig{}
-	userConfig := s.Config.Users[user]
+	userConfig := serv.Config.Users[user]
 	if userConfig != nil {
 		clients = userConfig.Clients
 	}else{
@@ -76,16 +102,18 @@ func (s *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 
 	err := json.NewEncoder(w).Encode(clients)
+	w.WriteHeader(http.StatusOK)
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
-
-func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	//----------API-Endpoint: Get one client of a one user----------
+func (serv *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	user := r.Context().Value(key).(string)
 	log.Info("Get One client")
-	usercfg := s.Config.Users[user]
+
+	usercfg := serv.Config.Users[user]
 	if usercfg == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -96,7 +124,7 @@ func (s *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprouter
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	log.Info("AllowedIP's COnfig")
+	log.Info("AllowedIP's Config")
 	allowedIPs := strings.Join(*wgAllowedIPs, ",")
 
 	dns := ""
@@ -112,7 +140,7 @@ PrivateKey = %s
 PublicKey = %s
 AllowedIPs = %s
 Endpoint = %s
-`, dns, client.IP.String(), client.PrivateKey, s.Config.PublicKey, allowedIPs, *wgEndpoint)
+`, dns, client.IP.String(), client.PrivateKey, serv.Config.PublicKey, allowedIPs, *wgEndpoint)
 	log.Info(configData)
 	format := r.URL.Query().Get("format")
 
@@ -154,7 +182,7 @@ Endpoint = %s
 		return
 	}
 }
-
+//----------API-Endpoint: Creating client----------
 func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	serv.mutex.Lock()
 	defer serv.mutex.Unlock()
@@ -165,29 +193,31 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 	cli := serv.Config.GetUSerConfig(user)
 	log.Info("User Config: ", cli.Clients, " ", cli.Name)
 
-	if maxNumberCliConfig > 0 {
-		if len(cli.Clients) >= maxNumberCliConfig {
-			log.Errorf("there too many configs ", cli.Name)
-			e := struct {
-				Error string
-			}{
-				Error: "Max number of configs: " + strconv.Itoa(maxNumberCliConfig),
-			}
-			w.WriteHeader(http.StatusBadRequest)
-			err := json.NewEncoder(w).Encode(e)
-			if err != nil {
-				log.Errorf("There was an API ERRROR - CREATE CLIENT ::", err)
-				w.WriteHeader(http.StatusBadRequest)
-				err := json.NewEncoder(w).Encode(e)
-				if err != nil {
-					log.Errorf("Error enocoding ::", err)
-					return
-				}
-				return
-			}
+	//if maxNumberCliConfig > 3 {
+	//	if len(cli.Clients) >= maxNumberCliConfig {
+	//		log.Errorf("there too many configs ", cli.Name)
+	//		e := struct {
+	//			Error string
+	//		}{
+	//			Error: "Max number of configs: " + strconv.Itoa(maxNumberCliConfig),
+	//		}
+	//		w.WriteHeader(http.StatusBadRequest)
+	//		err := json.NewEncoder(w).Encode(e)
+	//		if err != nil {
+	//			log.Errorf("There was an API ERRROR - CREATE CLIENT ::", err)
+	//			w.WriteHeader(http.StatusBadRequest)
+	//			err := json.NewEncoder(w).Encode(e)
+	//			if err != nil {
+	//				log.Errorf("Error enocoding ::", err)
+	//				return
+	//			}
+	//			return
+	//		}
+	//		log.Info("decoding dthe body")
 			decoder := json.NewDecoder(r.Body)
+			//w.Header().Set("Content-Type", "application/json"; "charset=UTF-8")
 			client := &ClientConfig{}
-			err = decoder.Decode(&client)
+			err := decoder.Decode(&client)
 			if err != nil {
 				log.Warn(err)
 				w.WriteHeader(http.StatusBadRequest)
@@ -225,38 +255,84 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}
-	}
-}
-	func (s *Server) withAuth(handler httprouter.Handle) httprouter.Handle {
-		return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-			log.Debug("Auth required")
+	//}
+//}
+	//----------API-Endpoint: Editting clients----------
+	func (serv *Server) EditClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user := r.Context().Value(key).(string)
+		usercfg := serv.Config.Users[user]
+		if usercfg == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 
-			user := r.Context().Value(key)
-			if user == nil {
-				log.Error("Error getting username from request context")
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+		client := usercfg.Clients[ps.ByName("client")]
+		if client == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 
-			if user != ps.ByName("user") {
-				log.Infof("user ",user, " path: ", r.URL.Path, " Unauthorized access")
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
+		cfg := ClientConfig{}
 
-			handler(w, r, ps)
+		if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
+			log.Warn("Error parsing request: ", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		log.Debugf("EditClient: %#v", cfg)
+
+		if cfg.Name != "" {
+			client.Name = cfg.Name
+		}
+
+		if cfg.Info != "" {
+			client.Info = cfg.Info
+		}
+
+		client.Modified = time.Now().Format(time.RFC3339)
+
+		serv.reconfiguringWG()
+
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(client); err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 	}
+	func (serv *Server) DeleteClient(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		user := r.Context().Value(key).(string)
+		usercfg := serv.Config.Users[user]
+		if usercfg == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 
+		client := ps.ByName("client")
+		if usercfg.Clients[client] == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		delete(usercfg.Clients, client)
+		serv.reconfiguringWG()
+
+		log.Info("user", user ," ::: Deleted client:" , client)
+
+		w.WriteHeader(http.StatusOK)
+	}
+//----------API- Init sequance  ----------
 func (serv *Server) StartAPI() error {
 
 	router := httprouter.New()
 	router.GET("/index", serv.Index)
-	router.GET("/whoami", serv.Idetify)
-	router.POST("/WG/API/createclient/:user/clients", serv.withAuth(serv.CreateClient))
-	router.GET("/WG/API/getclients/:user/clients",serv.withAuth(serv.GetClients))
-	router.GET("/WG/API/getclient/:user/clients/:client", serv.withAuth(serv.GetClient))
-
+	router.GET("/identify", serv.Idetify)
+	router.POST("/WG/API/:user/clients", serv.withAuth(serv.CreateClient))
+	router.GET("/WG/API/:user/clients",serv.withAuth(serv.GetClients))
+	router.GET("/WG/API/:user/clients/:client", serv.withAuth(serv.GetClient))
+	router.PUT("/WG/API/:user/clients/:client", serv.withAuth(serv.EditClient))
+	router.DELETE("/WG/API/:user/clients/:client", serv.withAuth(serv.DeleteClient))
 
 	return http.ListenAndServe(*listenAddr, serv.userFromHeader(router))
 

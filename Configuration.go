@@ -1,4 +1,4 @@
-			package main
+package main
 
 import (
 	"encoding/json"
@@ -22,15 +22,15 @@ type UserConf struct {
 	Clients map[string]*ClientConfig
 }
 type ClientConfig struct {
-	Name       string
-	PrivateKey string
-	PublicKey  string
-	IP         net.IP
-	Created    string
-	Modified   string
-	Info       string
+	Name       string `json:"name"`
+	PrivateKey string `json:"private_key"`
+	PublicKey  string `json:"public_key"`
+	IP         net.IP `json:"ip"`
+	Created    string `json:"created"`
+	Modified   string `json:"modified"`
+	Info       string `json:"info"`
 }
-
+//----------Configuration: Generating a server configuration----------
 func newServerConfig(cfgPath string) *WgConf {
 	keys, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
@@ -60,7 +60,7 @@ func newServerConfig(cfgPath string) *WgConf {
 	}
 	return config
 }
-
+//----------Configuration: Writing on a file ----------
 func (config *WgConf) Write() error {
 	data, err := json.MarshalIndent(config, "", " ")
 	if err != nil {
@@ -68,7 +68,7 @@ func (config *WgConf) Write() error {
 	}
 	return ioutil.WriteFile(config.configPath, data, 0600)
 }
-
+//----------Configuration: Getting user configuration and making one if doesn't exist ----------
 func (config *WgConf) GetUSerConfig(user string) *UserConf {
 	us, ok := config.Users[user]
 	if !ok {
@@ -81,7 +81,7 @@ func (config *WgConf) GetUSerConfig(user string) *UserConf {
 	}
 	return us
 }
-
+//----------Configuration: Creating a client and returning it----------
 func NewClientConfig(ip net.IP, Name, Info string) *ClientConfig {
 	keys, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
