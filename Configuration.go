@@ -2,13 +2,14 @@
 
 import (
 	"encoding/json"
-	"github.com/labstack/gommon/log"
+	//"github.com/labstack/gommon/log"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
 	"time"
+	"log"
 )
 
 type WgConf struct {
@@ -34,7 +35,7 @@ type ClientConfig struct {
 func newServerConfig(cfgPath string) *WgConf {
 	keys, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
-		log.Error("Fatal", err)
+		log.Panicf("Fatal", err)
 	}
 	config := &WgConf{
 		configPath: cfgPath,
@@ -47,16 +48,16 @@ func newServerConfig(cfgPath string) *WgConf {
 		if err = json.NewDecoder(file).Decode(config); err != nil {
 			log.Fatal("Failing to decode :: ", err)
 		}
-		log.Info("Read server config from file : ", cfgPath)
-		log.Info("------------------------------------------")
+		log.Printf("Read server config from file : ", cfgPath)
+		log.Println("------------------------------------------")
 	} else if os.IsNotExist(err) {
-		log.Info("No configuration file found  ::  Creating one ", cfgPath)
+		log.Println("No configuration file found  ::  Creating one ", cfgPath)
 		err = config.Write()
 
 	}
-	log.Info("PublicKey: ", config.PublicKey, "     PrivateKey: ", config.PrivateKey)
+	log.Printf("PublicKey: ", config.PublicKey, "     PrivateKey: ", config.PrivateKey)
 	if err != nil {
-		log.Info("Error", err)
+		log.Println("Error", err)
 	}
 	return config
 }
@@ -72,7 +73,7 @@ func (config *WgConf) Write() error {
 func (config *WgConf) GetUSerConfig(user string) *UserConf {
 	us, ok := config.Users[user]
 	if !ok {
-		log.Info("This user is not existing: ", user, " Making one righ now.....")
+		log.Printf("This user is not existing: ", user, " Making one righ now.....")
 		us = &UserConf{
 			Name:    user,
 			Clients: make(map[string]*ClientConfig),

@@ -3,15 +3,13 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
+	"log"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
-	"github.com/google/nftables"
-	"github.com/google/nftables/expr"
-	"github.com/labstack/gommon/log"
+	//"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
-	"github.com/vishvananda/netns"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -22,19 +20,25 @@ import (
 )
 
 var (
-	dataDir    = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
-	listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
+	//dataDir    = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
+	//listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
 	//natEnabled            = kingpin.Flag("nat", "Whether NAT is enabled or not").Default("true").Bool()
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
-	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.0.0.0/8").String()
-	authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
+	//clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.0.0.0/8").String()
+	//authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
 	tlsCertDir         = "."
 	tlsKeyDir          = "."
 	wgLiName           = "wg0"
 	wgPort             = 51820
 	//dataDir = "/Config/lib"
-	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
+	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
+	dataDir = flag.String("data-dir", "/Config/lib", "Directory used for storage")
+	listenAddr = flag.String("listen-address",":8080", "Address to listen to")
+	natEnabled  = flag.Bool("nat", true, "Whether NAT is enabled or not")
+	clientIPRange  = flag.String("client-ip-range","10.0.0.0/8", "Client IP CIDR")
+	authUserHeader = flag.String("auth-user-header","X-Forwarded-User", "Header containing username")
+	natLink = flag.String("nat-device","ens3", "Network interface to masquerade")
 
 )
 
@@ -72,13 +76,13 @@ func NewServer() *Server {
 	if err != nil {
 		log.Fatal("Error with those IPS:", err)
 	}
-	log.Info("IP Address: %s IP Network: %s", ipAddr, ipNet)
+	log.Println("IP Address: %s IP Network: %s", ipAddr, ipNet)
 	err = os.Mkdir(*dataDir, 0700)
 	if err != nil {
-		log.Debug("Error init dir: ", err)
+		log.Printf("Error init dir: ", err)
 	}
 	configPath := path.Join(*dataDir, "conf")
-	log.Info(configPath)
+	log.Println(configPath)
 	config := newServerConfig(configPath)
 
 	assets := http.FileServer(&assetfs.AssetFS{Asset: Asset, AssetDir: AssetDir, AssetInfo: AssetInfo, Prefix: ""})
@@ -97,30 +101,30 @@ func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
 	attrs.Name = "wg0"
 	link := wgLink{attrs: &attrs}
-	log.Info("------------------------------------------")
-	log.Info("Adding WireGuard device ", attrs.Name)
+	log.Printf("------------------------------------------")
+	log.Println("Adding WireGuard device ", attrs.Name)
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err) {
-		log.Infof("WireGuard interface %s already exists. REUSING. ", attrs.Name)
+		log.Printf("WireGuard interface %s already exists. REUSING. ", attrs.Name)
 	} else if err != nil {
-		log.Error("Problem with the interface :::", err)
+		log.Panic("Problem with the interface :::", err)
 		return nil
 	}
-	log.Info("------------------------------------------")
-	log.Debug("Setting up IP address to wireguard device: ", serv.clientIPRange)
+	log.Printf("------------------------------------------")
+	log.Printf("Setting up IP address to wireguard device: ", serv.clientIPRange)
 	addr, _ := netlink.ParseAddr("10.0.0.1/8")
 	err = netlink.AddrAdd(&link, addr)
 	if os.IsExist(err) {
-		log.Infof("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
+		log.Printf("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
 	} else if err != nil {
-		log.Error(err)
+		log.Panic(err)
 		return err
 	}
-	log.Info("------------------------------------------")
-	log.Info("Bringing up wireguard device: ", attrs.Name)
+	log.Printf("------------------------------------------")
+	log.Printf("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
 	if err != nil {
-		log.Errorf("Couldn't bring up %s", attrs.Name)
+		log.Panic("Couldn't bring up %s", attrs.Name)
 	}
 
 	return nil
@@ -143,7 +147,7 @@ func (serv *Server) allocateIP() net.IP {
 			}
 		}
 		if !allocated[ip.String()] {
-			log.Debug("Allocated IP: ", ip)
+			log.Printf("Allocated IP: ", ip)
 			return ip
 		}
 	}
@@ -160,7 +164,7 @@ func (serv *Server) enableIPForward() error {
 
 	if string(content) == "0\n" {
 
-		log.Info("Enabling sys.net.ipv4.ip_forward - Success")
+		log.Printf("Enabling sys.net.ipv4.ip_forward - Success")
 
 		return ioutil.WriteFile(p, []byte("1"), 0600)
 	}
@@ -169,25 +173,25 @@ func (serv *Server) enableIPForward() error {
 }
 
 func (serv *Server) wgConfiguation() error {
-	log.Info("------------------------------------------")
-	log.Info("Configuring WireGuard")
+	log.Printf("------------------------------------------")
+	log.Printf("Configuring WireGuard")
 	wg, err := wgctrl.New()
 	if err != nil {
-		log.Error("There is an error configuring WireGuard ::", err)
+		log.Panic("There is an error configuring WireGuard ::", err)
 	}
-	log.Info("Adding PrivetKey....")
+	log.Printf("Adding PrivetKey....")
 	keys, err := wgtypes.ParseKey(serv.Config.PrivateKey)
 	if err != nil {
-		log.Error("Couldn't add PrivateKey ::", err)
+		log.Printf("Couldn't add PrivateKey ::", err)
 	}
-	log.Info("PrivateKey->Successfully added -", serv.Config.PrivateKey)
+	log.Printf("PrivateKey->Successfully added -", serv.Config.PrivateKey)
 	peers := make([]wgtypes.PeerConfig, 0)
 	for user, cfg := range serv.Config.Users {
 		for id, dev := range cfg.Clients {
 			pbkey, err := wgtypes.ParseKey(dev.PublicKey)
-			log.Info("PublicKey TO client - Added")
+			log.Printf("PublicKey TO client - Added")
 			if err != nil {
-				log.Error("Couldn't add PublicKey to peer :: ", err)
+				log.Printf("Couldn't add PublicKey to peer :: ", err)
 			}
 			AllowedIPs := make([]net.IPNet, 1)
 			AllowedIPs[0] = *netlink.NewIPNet(dev.IP)
@@ -196,8 +200,8 @@ func (serv *Server) wgConfiguation() error {
 				ReplaceAllowedIPs: true,
 				AllowedIPs:        AllowedIPs,
 			}
-			log.Infof("Adding user ")
-			log.Infof("User: %s, ClientID %s: , Publickey: %s AllowedIPS: %s", user, id, dev.PublicKey, peer.AllowedIPs)
+			log.Printf("Adding user ")
+			log.Printf("User: %s, ClientID %s: , Publickey: %s AllowedIPS: %s", user, id, dev.PublicKey, peer.AllowedIPs)
 			peers = append(peers, peer)
 		}
 
@@ -230,62 +234,62 @@ func (serv *Server) wgConfiguation() error {
 	}
 	return nil
 }
-func (serv *Server) natConfigure() error{
-	log.Info("Adding NAT / IP masquerading using nftables")
-	ns, err := netns.Get()
-
-	conn := nftables.Conn{NetNS: int(ns)}
-
-	log.Info("Flushing nftable rulesets")
-	conn.FlushRuleset()
-
-	log.Info("Setting up nftable rules for ip masquerading")
-
-	nat := conn.AddTable(&nftables.Table{
-		Family: nftables.TableFamilyIPv4,
-		Name:   "nat",
-	})
-
-	conn.AddChain(&nftables.Chain{
-		Name:     "prerouting",
-		Table:    nat,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPrerouting,
-		Priority: nftables.ChainPriorityFilter,
-	})
-
-	post := conn.AddChain(&nftables.Chain{
-		Name:     "postrouting",
-		Table:    nat,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriorityNATSource,
-	})
-
-	conn.AddRule(&nftables.Rule{
-		Table: nat,
-		Chain: post,
-		Exprs: []expr.Any{
-			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
-			&expr.Cmp{
-				Op:       expr.CmpOpEq,
-				Register: 1,
-				Data:     ifname(*natLink),
-			},
-			&expr.Masq{},
-		},
-	})
-log.Info("NAT Ready")
-	if err = conn.Flush(); err != nil {
-		return err
-	}
-	return nil
-}
+//func (serv *Server) natConfigure() error{
+//	log.Info("Adding NAT / IP masquerading using nftables")
+//	ns, err := netns.Get()
+//
+//	conn := nftables.Conn{NetNS: int(ns)}
+//
+//	log.Info("Flushing nftable rulesets")
+//	conn.FlushRuleset()
+//
+//	log.Info("Setting up nftable rules for ip masquerading")
+//
+//	nat := conn.AddTable(&nftables.Table{
+//		Family: nftables.TableFamilyIPv4,
+//		Name:   "nat",
+//	})
+//
+//	conn.AddChain(&nftables.Chain{
+//		Name:     "prerouting",
+//		Table:    nat,
+//		Type:     nftables.ChainTypeNAT,
+//		Hooknum:  nftables.ChainHookPrerouting,
+//		Priority: nftables.ChainPriorityFilter,
+//	})
+//
+//	post := conn.AddChain(&nftables.Chain{
+//		Name:     "postrouting",
+//		Table:    nat,
+//		Type:     nftables.ChainTypeNAT,
+//		Hooknum:  nftables.ChainHookPostrouting,
+//		Priority: nftables.ChainPriorityNATSource,
+//	})
+//
+//	conn.AddRule(&nftables.Rule{
+//		Table: nat,
+//		Chain: post,
+//		Exprs: []expr.Any{
+//			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
+//			&expr.Cmp{
+//				Op:       expr.CmpOpEq,
+//				Register: 1,
+//				Data:     ifname(*natLink),
+//			},
+//			&expr.Masq{},
+////		},
+////	})
+//log.Info("NAT Ready")
+//	if err = conn.Flush(); err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 
 
 func (serv *Server) reconfiguringWG() error {
-	log.Infof("Reconfiguring wireGuard interface: wg0")
+	log.Printf("Reconfiguring wireGuard interface: wg0")
 
 	err := serv.Config.Write()
 	if err != nil {
@@ -294,7 +298,7 @@ func (serv *Server) reconfiguringWG() error {
 	}
 	err = serv.wgConfiguation()
 	if err != nil {
-		log.Infof("Error Configuring file ::", err)
+		log.Printf("Error Configuring file ::", err)
 	}
 	return nil
 }
@@ -304,21 +308,21 @@ func (serv *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	log.Info("------------------------------------------")
-	log.Info("Enabling IP Forward....")
+	log.Printf("------------------------------------------")
+	log.Printf("Enabling IP Forward....")
 	err = serv.enableIPForward()
 	if err != nil {
 
-		log.Error("Couldnt enable IP Forwarding:  ", err)
+		log.Printf("Couldnt enable IP Forwarding:  ", err)
 	}
 	err = serv.wgConfiguation()
 	if err != nil {
-		log.Error("Couldnt Configure interface ::", err)
+		log.Panic("Couldnt Configure interface ::", err)
 	}
-	err = serv.natConfigure()
-	if err != nil{
-		log.Error("COuldnt configure NAT :: ", err)
-	}
+	//err = serv.natConfigure()
+	//if err != nil{
+	//	log.Error("COuldnt configure NAT :: ", err)
+	//}
 	return nil
 
 }
