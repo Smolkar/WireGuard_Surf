@@ -1,5 +1,92 @@
 {
  "PrivateKey": "6HKqxyJNEpx2dP9Y/uHwmuWWRHpPHi84ct31lnfdR1Q=",
  "PublicKey": "f8MqewHcgTC/Q8Si+kxVBfzawc+iArkbA7PXjijA83s=",
- "Users": {}
+ "Users": {
+  "anonymous": {
+   "Name": "anonymous",
+   "Clients": {
+    "1": {
+     "name": "Some_name",
+     "private_key": "",
+     "public_key": "7Cq0Satdm6VnwYm4N9mmQeqpPaSVBvvbxpJtOZu+JhE=",
+     "ip": "10.0.0.2",
+     "created": "2020-05-26T18:40:59Z",
+     "modified": "2020-05-26T18:40:59Z",
+     "info": ""
+    },
+    "2": {
+     "name": "DIMO",
+     "private_key": "MBOwTtanpAp80uDoCc42CQv28exngaaG+DCyIA3uY0I=",
+     "public_key": "VAw54Vw5RJNFrNYWH/X2LR35B9P80wkMxmS5dvbPOng=",
+     "ip": "10.0.0.3",
+     "created": "2020-06-28T04:29:35Z",
+     "modified": "2020-06-28T04:29:35Z",
+     "info": "ASD"
+    },
+    "3": {
+     "name": "DIMO",
+     "private_key": "gIjT6rAxEbQButQPo7ZiowivA0V8I8xydT7MsUiabXk=",
+     "public_key": "zcgryQ5flhiEwYIe31o7d4OFmMBFx0OPyYn3xfAIqw0=",
+     "ip": "10.0.0.5",
+     "created": "2020-06-28T04:30:37Z",
+     "modified": "2020-06-28T04:30:37Z",
+     "info": "ASD"
+    },
+    "4": {
+     "name": "ROgier",
+     "private_key": "QCokXjyhRUhezPovkdBssX28dzKM79cAjNnYueJXdEA=",
+     "public_key": "jSNiCxn13U5CIcUgSxAs78aygosSVwkW1adzuBrGrTo=",
+     "ip": "10.0.0.6",
+     "created": "2020-06-29T09:38:47Z",
+     "modified": "2020-06-29T09:38:47Z",
+     "info": "personal"
+    },
+    "5": {
+     "name": "Dimo",
+     "private_key": "eIzub3xf+6lYHOEQqqSbi/Qmwy93d5bm3ZVxcfIKxG4=",
+     "public_key": "mf0U4Cw/A+LDXC0b4g2vwU33kGgZLW4t/QD1UD3aZx4=",
+     "ip": "10.0.0.7",
+     "created": "2020-07-05T23:41:01Z",
+     "modified": "2020-07-05T23:41:01Z",
+     "info": "kr"
+    },
+    "6": {
+     "name": "Dimo",
+     "private_key": "YPj3ZyVoWYHobzXABRh0oglp70bne0RMyZmd/V2WJGY=",
+     "public_key": "yMR9gLGZzDXTBAUeRZhlmRhFAKPv4Po5Olzl4JwW/RY=",
+     "ip": "10.0.0.8",
+     "created": "2020-07-05T23:41:51Z",
+     "modified": "2020-07-05T23:41:51Z",
+     "info": "kr"
+    },
+    "7": {
+     "name": "Dimo",
+     "private_key": "AAQenwXskR/+4KY13YMqDAsHOG4So1ICRhS20HOBw1E=",
+     "public_key": "YjaZod/ExGGeDakCCaPRjcQjK+ECOB8a6Mwu5XDfsgQ=",
+     "ip": "10.0.0.9",
+     "created": "2020-07-06T02:02:08Z",
+     "modified": "2020-07-06T02:02:08Z",
+     "info": "kr"
+    },
+    "8": {
+     "name": "sad",
+     "private_key": "CKOEfO02gH+ENeVaMHF30gP5Sx3daUHxQF/o1YWRaUA=",
+     "public_key": "Hwdy3ntB568/W3koFsHsLB+cIaZ3FYCpjlVVOp7tyRI=",
+     "ip": "10.0.0.10",
+     "created": "2020-07-06T02:03:05Z",
+     "modified": "2020-07-06T02:03:05Z",
+     "info": "sad"
+    },
+    "9": {
+     "name": "Aletta",
+     "private_key": "GInYsbjVWpLeXHzjR10O9NXpQLM5i0JBTTsiXw2fQGM=",
+     "public_key": "AEIWQvtorJfAVhSPiAVT1ggNZLUx1Zjz24AHUH9222M=",
+     "ip": "10.0.0.4",
+     "created": "2020-07-08T17:20:37Z",
+     "modified": "2020-07-08T17:20:37Z",
+     "info": "Heeregrave"
+    }
+   }
+  }
+ }
 }

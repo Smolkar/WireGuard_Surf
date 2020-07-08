@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/google/nftables"
-	"github.com/google/nftables/expr"
+//	"github.com/google/nftables/expr"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
@@ -253,27 +253,27 @@ func (serv *Server) natConfigure() error{
 		Priority: nftables.ChainPriorityFilter,
 	})
 
-	post := conn.AddChain(&nftables.Chain{
-		Name:     "postrouting",
-		Table:    nat,
-		Type:     nftables.ChainTypeNAT,
-		Hooknum:  nftables.ChainHookPostrouting,
-		Priority: nftables.ChainPriorityNATSource,
-	})
+//	post := conn.AddChain(&nftables.Chain{
+//		Name:     "postrouting",
+//		Table:    nat,
+//		Type:     nftables.ChainTypeNAT,
+//		Hooknum:  nftables.ChainHookPostrouting,
+//		Priority: nftables.ChainPriorityNATSource,
+//	})
 
-	conn.AddRule(&nftables.Rule{
-		Table: nat,
-		Chain: post,
-		Exprs: []expr.Any{
-			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
-			&expr.Cmp{
-				Op:       expr.CmpOpEq,
-				Register: 1,
-				Data:     ifname(*natLink),
-			},
-			&expr.Masq{},
-		},
-	})
+//	conn.AddRule(&nftables.Rule{
+//		Table: nat,
+//		Chain: post,
+//		Exprs: []expr.Any{
+//			&expr.Meta{Key: expr.MetaKeyOIFNAME, Register: 1},
+//			&expr.Cmp{
+//				Op:       expr.CmpOpEq,
+//				Register: 1,
+//				Data:     ifname(*natLink),
+//			},
+//			&expr.Masq{},
+//		},
+//	})
 log.Info("NAT Ready")
 	if err = conn.Flush(); err != nil {
 		return err

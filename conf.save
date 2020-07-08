@@ -1,0 +1,112 @@
+{
+ "PrivateKey": "6HKqxyJNEpx2dP9Y/uHwmuWWRHpPHi84ct31lnfdR1Q=",
+ "PublicKey": "f8MqewHcgTC/Q8Si+kxVBfzawc+iArkbA7PXjijA83s=",
+ "Users": {
+  "anonymous": {
+   "Name": "anonymous",
+   "Clients": {
+    "1": {
+     "name": "Some_name",
+     "private_key": "",
+     "public_key": "7Cq0Satdm6VnwYm4N9mmQeqpPaSVBvvbxpJtOZu+JhE=",
+     "ip": "10.0.0.2",
+     "created": "2020-05-26T18:40:59Z",
+     "modified": "2020-05-26T18:40:59Z",
+     "info": ""
+    },
+"-","file":"main.go","line":"199","message":"User: anonymous, ClientID 11: , Publickey: s1uL7JDdW+PfJMnWEQMBz64DoOrPHnZDm82Cg+qzxFo= AllowedIPS: [{10.0.0.12 ffffffff}]"}
+{"time":"2020-07-06T02:04:52.08595198Z","level":"INFO","prefix":
+    "10": {
+     "name": "asd",
+     "private_key": "eNkGiaZWWg1Rgygg1x/71fnWX6ChCAAhdnjTmmARPXs=",
+     "public_key": "+f0xe8RIKiiKxquCaOmmbuirO5Vau5Z9zbyTdX/Pg3I=",
+     "ip": "10.0.0.11",
+     "created": "2020-07-06T02:03:44Z",
+     "modified": "2020-07-06T02:03:44Z",
+     "info": "asd"
+    },
+    "11": {
+     "name": "Heeregrave",
+     "private_key": "qMugOdVj7vlOt9do/eRFsznw9w317I84KDZz4rNcQ04=",
+     "public_key": "s1uL7JDdW+PfJMnWEQMBz64DoOrPHnZDm82Cg+qzxFo=",
+     "ip": "10.0.0.12",
+     "created": "2020-07-06T02:04:52Z",
+     "modified": "2020-07-06T02:04:52Z",
+     "info": "Heeregrave"
+    },
+    "12": {
+     "name": "asd",
+     "private_key": "CEYt9LqO5vsTVDz9ZPoU3Vjv/n1Z/xazXQBUsQMo10E=",
+     "public_key": "YxNh901Nmgg+NeaDaMG0kXhiK05byY2+Pn7iIGKMkhg=",
+     "ip": "10.0.0.13",
+     "created": "2020-07-06T02:06:37Z",
+     "modified": "2020-07-06T02:06:37Z",
+     "info": "asd"
+    },
+    "13": {
+     "name": "dimo",
+     "private_key": "6JKofDyQMNMO3zyvHbRuMOImOzXJ0tUL6J2Kf0J0aVg=",
+     "public_key": "RKRT1ptpHsP64iRUUsZ/lVVV0XqxbQe9iXYc/O7zbF4=",
+     "ip": "10.0.0.14",
+     "created": "2020-07-06T02:07:03Z",
+     "modified": "2020-07-06T02:07:03Z",
+     "info": "dimo"
+    },
+    "14": {
+     "name": "dimo",
+     "private_key": "GM5TTSbFd/MUk1S87J6Tv28gEmtx4OweUCds1ItQVkc=",
+     "public_key": "KL5kdfwwYbi5ikww1NWi+i0+3fZbdRl+xREbYQlkZzo=",
+     "ip": "10.0.0.15",
+     "created": "2020-07-06T02:08:07Z",
+     "modified": "2020-07-06T02:08:07Z",
+     "info": "displayInfo"
+    },
+    "15": {
+     "name": "dimo",
+     "private_key": "UNxLVkyk/WRf+AR7WvfyJ7EE/VbsmcgZqFSmjXb6smA=",
+     "public_key": "xuZZIlIiydd7Br9YwLjtQHDzD02SjSS1lw65QmX0rE0=",
+     "ip": "10.0.0.16",
+     "created": "2020-07-06T02:08:24Z",
+     "modified": "2020-07-06T02:08:24Z",
+     "info": "displayInfo"
+    },
+    "16": {
+     "name": "dimo",
+     "private_key": "OCP6VezmeLvojcfCvRfDUY3Cq/wrPkKIhO8Y3vJf3kI=",
+     "public_key": "/YlQsXvZ0ok/VZghXD/OR/wtpl95gI1I55nv6DT8sWU=",
+     "ip": "10.0.0.17",
+     "created": "2020-07-06T02:08:46Z",
+     "modified": "2020-07-06T02:08:46Z",
+     "info": "dimo"
+    },
+    "17": {
+     "name": "laaan",
+     "private_key": "MGE/32xalkuPw1wbH3yftUcOX3GCQ77iyVbI6Q6dsmM=",
+     "public_key": "lglBLG4gsl9J5bEnLNEgX55xKJkam01L5bC9cHOWtCw=",
+     "ip": "10.0.0.18",
+     "created": "2020-07-06T02:14:33Z",
+     "modified": "2020-07-06T02:14:33Z",
+     "info": "laaan"
+    },
+    "18": {
+     "name": "Matev",
+     "private_key": "aEqQ5IjoYeA8ACAJAhf+8eh2sqhNO98OacQaALhcWUA=",
+     "public_key": "ukQhv9vylFefGDmQx7+v8sNyDDf/i3DwV0z6YRN0LgA=",
+     "ip": "10.0.0.19",
+     "created": "2020-07-06T02:21:48Z",
+     "modified": "2020-07-06T02:21:48Z",
+     "info": "Dimitar"
+    },
+    "19": {
+     "name": "Logitech",
+     "private_key": "KHZwyw5lO0mmu9W4iehCkwHES6qVwTsqsFqbEOQyQF4=",
+     "public_key": "Gw1pt64v2uF89o2sXiVhicPtTOXcEXf/cGawGCBbznk=",
+     "ip": "10.0.0.20",
+     "created": "2020-07-06T02:22:57Z",
+     "modified": "2020-07-06T02:22:57Z",
+     "info": "Z623"
+    },
+   }
+  }
+ }
+}
