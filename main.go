@@ -6,13 +6,13 @@ import (
 	"flag"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/google/nftables"
-	//	"github.com/google/nftables/expr"
-	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"io/ioutil"
+	//	"github.com/google/nftables/expr"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -37,7 +37,7 @@ var (
 	wgPort             = 51820
 	//dataDir = "/Config/lib"
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
-	dataDir = flag.String("data-dir","/Config/lig","Directory used for storage")
+	dataDir = flag.String("data-dir","","Directory used for storage")
 	listenAddr = flag.String("listen-address", ":8080","Address to listen to")
 	clientIPRange  = flag.String("client-ip-range","10.0.0.0/8", "Client IP CIDR")
 	authUserHeader = flag.String("auth-user-header", "X-Forwarded-User","Header containing username")
@@ -212,7 +212,6 @@ func (serv *Server) wgConfiguation() error {
 
 	}
 	pers := time.Duration(21)
-	log.Info("adding ME")
 	ip := net.ParseIP("10.0.0.2/8")
 	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
 	wgAllowedIPs := make([]net.IPNet,1)
