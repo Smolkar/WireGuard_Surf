@@ -34,7 +34,7 @@ type ClientConfig struct {
 func newServerConfig(cfgPath string) *WgConf {
 	keys, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
-		log.Error("Fatal", err)
+		log.Panic("Fatal", err)
 	}
 	config := &WgConf{
 		configPath: cfgPath,
@@ -47,16 +47,16 @@ func newServerConfig(cfgPath string) *WgConf {
 		if err = json.NewDecoder(file).Decode(config); err != nil {
 			log.Fatal("Failing to decode :: ", err)
 		}
-		log.Info("Read server config from file : ", cfgPath)
-		log.Info("------------------------------------------")
+		log.Print("Read server config from file : ", cfgPath)
+		log.Print("------------------------------------------")
 	} else if os.IsNotExist(err) {
-		log.Info("No configuration file found  ::  Creating one ", cfgPath)
+		log.Print("No configuration file found  ::  Creating one ", cfgPath)
 		err = config.Write()
 
 	}
-	log.Info("PublicKey: ", config.PublicKey, "     PrivateKey: ", config.PrivateKey)
+	log.Print("PublicKey: ", config.PublicKey, "     PrivateKey: ", config.PrivateKey)
 	if err != nil {
-		log.Info("Error", err)
+		log.Print("Error", err)
 	}
 	return config
 }
@@ -72,7 +72,7 @@ func (config *WgConf) Write() error {
 func (config *WgConf) GetUSerConfig(user string) *UserConf {
 	us, ok := config.Users[user]
 	if !ok {
-		log.Info("This user is not existing: ", user, " Making one righ now.....")
+		log.Print("This user is not existing: ", user, " Making one righ now.....")
 		us = &UserConf{
 			Name:    user,
 			Clients: make(map[string]*ClientConfig),
