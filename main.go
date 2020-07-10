@@ -34,7 +34,7 @@ var (
 	tlsCertDir         = "."
 	tlsKeyDir          = "."
 	//wgLiName           = "wg0"
-	//wgPort             = 51820
+	wgPort             = 51820
 	//dataDir = "/Config/lib"
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
 	dataDir = flag.String("data-dir","/Config/lig","Directory used for storage")
@@ -43,7 +43,7 @@ var (
 	authUserHeader = flag.String("auth-user-header", "X-Forwarded-User","Header containing username")
 	natLink               = flag.String("nat-device", "ens3", "Network interface to masquerade")
 	wgLinkName   =  flag.String("wg-device-name","wg0", "WireGuard network device name")
-	wgPort             = flag.Int("wg-port",51820,"WireGuard VPN port" )
+	//wgPort             = flag.Int("wg-port",51820,"WireGuard VPN port" )
 
 
 
@@ -104,7 +104,7 @@ func NewServer() *Server {
 
 func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
-	attrs.Name = wgLinkName
+	attrs.Name = *wgLinkName
 	link := wgLink{attrs: &attrs}
 	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)

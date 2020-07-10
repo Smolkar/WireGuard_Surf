@@ -12,7 +12,6 @@
 		"net/http"
 		"regexp"
 		"strconv"
-		"strings"
 		"time"
 	)
 
@@ -29,7 +28,7 @@ var (
 	wgListenPort = flag.Int("wg-listen-port",51820, "WireGuard UDP port to listen to")
 	wgEndpoint   = flag.String("wg-endpoint","127.0.0.1:51820", "WireGuard endpoint address")
 	wgAllowedIPs = flag.String("wg-allowed-ips","0.0.0.0/0", "WireGuard client allowed ips")
-	wgDNS        = kingpin.Flag("wg-dns","8.8.8.8", "WireGuard client DNS server (optional)")
+	wgDNS        = flag.String("wg-dns","8.8.8.8", "WireGuard client DNS server (optional)")
 	//maxNumberCliConfig = 10
 	filenameRe = regexp.MustCompile("[^a-zA-Z0-9]+")
 	)
