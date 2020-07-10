@@ -8,7 +8,6 @@
 		"github.com/julienschmidt/httprouter"
 		"github.com/labstack/gommon/log"
 		"github.com/skip2/go-qrcode"
-		"gopkg.in/alecthomas/kingpin.v2"
 		"net/http"
 		"regexp"
 		"strconv"
