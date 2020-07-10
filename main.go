@@ -3,15 +3,15 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/google/nftables"
-//	"github.com/google/nftables/expr"
+	//	"github.com/google/nftables/expr"
 	"github.com/labstack/gommon/log"
 	"github.com/vishvananda/netlink"
 	"github.com/vishvananda/netns"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -23,19 +23,29 @@ import (
 )
 
 var (
-	dataDir    = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
-	listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
+	//dataDir    = kingpin.Flag("data-dir", "Directory used for storage").Default("/Config/lib").String()
+	//listenAddr = kingpin.Flag("listen-address", "Address to listen to").Default(":8080").String()
 	//natEnabled            = kingpin.Flag("nat", "Whether NAT is enabled or not").Default("true").Bool()
 	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("wlp2s0").String()
-	clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.0.0.0/8").String()
-	authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
+	//clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.0.0.0/8").String()
+	//authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
+
 	tlsCertDir         = "."
 	tlsKeyDir          = "."
-	wgLiName           = "wg0"
-	wgPort             = 51820
+	//wgLiName           = "wg0"
+	//wgPort             = 51820
 	//dataDir = "/Config/lib"
-	natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
+	//natLink               = kingpin.Flag("nat-device", "Network interface to masquerade").Default("ens3").String()
+	dataDir = flag.String("data-dir","/Config/lig","Directory used for storage")
+	listenAddr = flag.String("listen-address", ":8080","Address to listen to")
+	clientIPRange  = flag.String("client-ip-range","10.0.0.0/8", "Client IP CIDR")
+	authUserHeader = flag.String("auth-user-header", "X-Forwarded-User","Header containing username")
+	natLink               = flag.String("nat-device", "ens3", "Network interface to masquerade")
+	wgLinkName   =  flag.String("wg-device-name","wg0", "WireGuard network device name")
+	wgPort             = flag.Int("wg-port",51820,"WireGuard VPN port" )
+
+
 
 )
 
@@ -94,7 +104,7 @@ func NewServer() *Server {
 
 func (serv *Server) UpInterface() error {
 	attrs := netlink.NewLinkAttrs()
-	attrs.Name = "wg0"
+	attrs.Name = wgLinkName
 	link := wgLink{attrs: &attrs}
 	log.Info("------------------------------------------")
 	log.Info("Adding WireGuard device ", attrs.Name)
@@ -322,6 +332,10 @@ func (serv *Server) Start() error {
 
 func main() {
 
+	flag.Usage = func(){
+		flag.PrintDefaults()
+	}
+	flag.Parse()
 	s := NewServer()
 
 	s.Start()

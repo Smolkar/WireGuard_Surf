@@ -3,6 +3,7 @@
 	import (
 		"context"
 		"encoding/json"
+		"flag"
 		"fmt"
 		"github.com/julienschmidt/httprouter"
 		"github.com/labstack/gommon/log"
@@ -19,12 +20,17 @@ var (
 	//clientIPRange  = kingpin.Flag("client-ip-range", "Client IP CIDR").Default("10.10.10.0/8").String()
 	//authUserHeader = kingpin.Flag("auth-user-header", "Header containing username").Default("X-Forwarded-User").String()
 	//maxNumberClientConfig = kingpin.Flag("max-number-client-config", "Max number of configs an client can use. 0 is unlimited").Default("0").Int()
-	wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg0").String()
-	wgListenPort = kingpin.Flag("wg-listen-port", "WireGuard UDP port to listen to").Default("51820").Int()
-	wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
-	wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
-	wgDNS        = kingpin.Flag("wg-dns", "WireGuard client DNS server (optional)").Default("").String()
-	maxNumberCliConfig = 10
+	//wgLinkName   = kingpin.Flag("wg-device-name", "WireGuard network device name").Default("wg0").String()
+
+	//wgListenPort = kingpin.Flag("wg-listen-port", "WireGuard UDP port to listen to").Default("51820").Int()
+	//wgEndpoint   = kingpin.Flag("wg-endpoint", "WireGuard endpoint address").Default("127.0.0.1:51820").String()
+	//wgAllowedIPs = kingpin.Flag("wg-allowed-ips", "WireGuard client allowed ips").Default("0.0.0.0/0").Strings()
+	//wgDNS        = kingpin.Flag("wg-dns", "WireGuard client DNS server (optional)").Default("").String()
+	wgListenPort = flag.Int("wg-listen-port",51820, "WireGuard UDP port to listen to")
+	wgEndpoint   = flag.String("wg-endpoint","127.0.0.1:51820", "WireGuard endpoint address")
+	wgAllowedIPs = flag.String("wg-allowed-ips","0.0.0.0/0", "WireGuard client allowed ips")
+	wgDNS        = kingpin.Flag("wg-dns","8.8.8.8", "WireGuard client DNS server (optional)")
+	//maxNumberCliConfig = 10
 	filenameRe = regexp.MustCompile("[^a-zA-Z0-9]+")
 	)
 const key = contextKey("user")
@@ -125,7 +131,7 @@ func (serv *Server) GetClient(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 	log.Info("AllowedIP's Config")
-	allowedIPs := strings.Join(*wgAllowedIPs, ",")
+	allowedIPs := *wgAllowedIPs + ","
 
 	dns := ""
 	if *wgDNS != "" {
