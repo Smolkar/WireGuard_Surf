@@ -327,14 +327,24 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		w.WriteHeader(http.StatusOK)
 	}
 	func (serv *Server) turnOn(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		if(wgStatus == false) {
+			log.Print("Starting WireGuard server.....")
+			serv.Start()
+			log.Print(" WireGuard server started")
 
-		serv.Start()
-		log.Print("Starting WireGuard server")
+		}else{
+			log.Print("Server is already running")
+		}
 		w.WriteHeader(http.StatusOK)
 
 	}
 	func (serv *Server) turnOff(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		serv.Stop()
+		if(wgStatus == true) {
+			log.Print("Shutting down WireGuard server")
+			serv.Stop()
+		}else{
+			log.Print("The server is already turned off")
+		}
 		log.Print("Starting WireGuard server")
 		w.WriteHeader(http.StatusOK)
 
