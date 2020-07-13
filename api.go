@@ -59,13 +59,13 @@ func (serv *Server) userFromHeader(handler http.Handler) http.Handler {
 
 			user := r.Context().Value(key)
 			if user == nil {
-				log.Panic("Error getting username from request context")
+				log.Print("Error getting username from request context")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
 			if user != ps.ByName("user") {
-				log.Panic("user "," ::: Unauthorized access")
+				log.Print("user "," ::: Unauthorized access")
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}else{
@@ -87,7 +87,7 @@ func (serv *Server) Idetify(w http.ResponseWriter, r *http.Request, ps httproute
 	log.Print(user)
 	err := json.NewEncoder(w).Encode(struct{ User string }{user})
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
@@ -108,7 +108,7 @@ func (serv *Server) GetClients(w http.ResponseWriter, r *http.Request, ps httpro
 	err := json.NewEncoder(w).Encode(clients)
 	w.WriteHeader(http.StatusOK)
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
@@ -151,7 +151,7 @@ Endpoint = %s
 	if format == "qrcode" {
 		png, err := qrcode.Encode(configData, qrcode.Medium, 220)
 		if err != nil {
-			log.Panic(err)
+			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -159,7 +159,7 @@ Endpoint = %s
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(png)
 		if err != nil {
-			log.Panic(err)
+			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -181,7 +181,7 @@ Endpoint = %s
 
 	err := json.NewEncoder(w).Encode(client)
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -223,7 +223,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			client := &ClientConfig{}
 			err := decoder.Decode(&client)
 			if err != nil {
-				log.Panic(err)
+				log.Print(err)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -235,7 +235,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			for k := range cli.Clients {
 				n, err := strconv.Atoi(k)
 				if err != nil {
-					log.Panic("THere was an error strc CONV :: ", err)
+					log.Print("THere was an error strc CONV :: ", err)
 					w.WriteHeader(http.StatusInternalServerError)
 					return
 				}
@@ -255,7 +255,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			}
 			err = json.NewEncoder(w).Encode(client)
 			if err != nil {
-				log.Panic(err)
+				log.Print(err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}
@@ -279,7 +279,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		cfg := ClientConfig{}
 
 		if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
-			log.Panic("Error parsing request: ", err)
+			log.Print("Error parsing request: ", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -300,7 +300,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(client); err != nil {
-			log.Panic(err)
+			log.Print(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

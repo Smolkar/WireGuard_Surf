@@ -112,7 +112,7 @@ func (serv *Server) UpInterface() error {
 	if os.IsExist(err) {
 		log.Printf("WireGuard interface %s already exists. REUSING. ", attrs.Name)
 	} else if err != nil {
-		log.Panic("Problem with the interface :::", err)
+		log.Print("Problem with the interface :::", err)
 		return nil
 	}
 	log.Print("------------------------------------------")
@@ -122,14 +122,14 @@ func (serv *Server) UpInterface() error {
 	if os.IsExist(err) {
 		log.Printf("WireGuard interface %s already has the requested address: ", serv.clientIPRange)
 	} else if err != nil {
-		log.Panic(err)
+		log.Print(err)
 		return err
 	}
 	log.Print("------------------------------------------")
 	log.Print("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
 	if err != nil {
-		log.Panicf("Couldn't bring up %s", attrs.Name)
+		log.Printf("Couldn't bring up %s", attrs.Name)
 	}
 	 wgStatus = true;
 	return nil
@@ -182,12 +182,12 @@ func (serv *Server) wgConfiguation() error {
 	log.Print("Configuring WireGuard")
 	wg, err := wgctrl.New()
 	if err != nil {
-		log.Panic("There is an error configuring WireGuard ::", err)
+		log.Print("There is an error configuring WireGuard ::", err)
 	}
 	log.Print("Adding PrivetKey....")
 	keys, err := wgtypes.ParseKey(serv.Config.PrivateKey)
 	if err != nil {
-		log.Panic("Couldn't add PrivateKey ::", err)
+		log.Print("Couldn't add PrivateKey ::", err)
 	}
 	log.Print("PrivateKey->Successfully added -", serv.Config.PrivateKey)
 	peers := make([]wgtypes.PeerConfig, 0)
@@ -196,7 +196,7 @@ func (serv *Server) wgConfiguation() error {
 			pbkey, err := wgtypes.ParseKey(dev.PublicKey)
 			log.Print("PublicKey TO client - Added")
 			if err != nil {
-				log.Panic("Couldn't add PublicKey to peer :: ", err)
+				log.Print("Couldn't add PublicKey to peer :: ", err)
 			}
 			AllowedIPs := make([]net.IPNet, 1)
 			AllowedIPs[0] = *netlink.NewIPNet(dev.IP)
@@ -315,15 +315,15 @@ func (serv *Server) Start() error {
 	err = serv.enableIPForward()
 	if err != nil {
 
-		log.Panic("Couldnt enable IP Forwarding:  ", err)
+		log.Print("Couldnt enable IP Forwarding:  ", err)
 	}
 	err = serv.wgConfiguation()
 	if err != nil {
-		log.Panic("Couldnt Configure interface ::", err)
+		log.Print("Couldnt Configure interface ::", err)
 	}
 	err = serv.natConfigure()
 	if err != nil{
-		log.Panic("COuldnt configure NAT :: ", err)
+		log.Print("COuldnt configure NAT :: ", err)
 	}
 	return nil
 
@@ -331,7 +331,7 @@ func (serv *Server) Start() error {
 func (serv *Server) Stop() error{
 	err := netlink.LinkDel(&actuallink)
 	if err != nil{
-		log.Panic("Error removing the interface ::: ", err)
+		log.Print("Error removing the interface ::: ", err)
 	}
 	wgStatus = false;
 	   return nil
