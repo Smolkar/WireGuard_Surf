@@ -331,9 +331,14 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			log.Print("Starting WireGuard server.....")
 			serv.Start()
 			log.Print(" WireGuard server started")
+			w.WriteHeader(http.StatusOK)
+			return
 
 		}else{
 			log.Print("Server is already running")
+			w.WriteHeader(http.StatusOK)
+			return
+
 		}
 		w.WriteHeader(http.StatusOK)
 
@@ -342,10 +347,15 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		if(wgStatus == true) {
 			log.Print("Shutting down WireGuard server")
 			serv.Stop()
+			w.WriteHeader(http.StatusOK)
+			return
+
 		}else{
 			log.Print("The server is already turned off")
+			w.WriteHeader(http.StatusOK)
+			return
+
 		}
-		log.Print("Starting WireGuard server")
 		w.WriteHeader(http.StatusOK)
 
 	}
@@ -354,7 +364,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		log.Print("WireGuard server is running")
 		w.WriteHeader(http.StatusFound)
 		} else{
-			log.Print("WireGuard serve is off ")
+			log.Print("WireGuard server is off ")
 			w.WriteHeader(http.StatusNoContent)
 		}
 
