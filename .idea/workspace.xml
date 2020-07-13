@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5aad2ede-8dfc-4e26-93ef-80fd33704485" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Configuration.go" beforeDir="false" afterPath="$PROJECT_DIR$/Configuration.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api.go" beforeDir="false" afterPath="$PROJECT_DIR$/api.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
     </list>
@@ -57,5 +56,9 @@
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="560" y="207" key="#Inspections/0.0.1920.1080/-1440.0.1440.900@0.0.1920.1080" timestamp="1589913347296" />
+    <state x="396" y="182" width="670" height="676" key="search.everywhere.popup" timestamp="1594667817083">
+      <screen x="0" y="23" width="1440" height="835" />
+    </state>
+    <state x="396" y="182" width="670" height="676" key="search.everywhere.popup/0.23.1440.835@0.23.1440.835" timestamp="1594667817083" />
   </component>
 </project>

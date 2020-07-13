@@ -19,7 +19,6 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 var (
@@ -44,7 +43,7 @@ var (
 	natLink               = flag.String("nat-device", "ens3", "Network interface to masquerade")
 	wgLinkName   =  flag.String("wg-device-name","wg0", "WireGuard network device name")
 	//wgPort             = flag.Int("wg-port",51820,"WireGuard VPN port" )
-
+	wgStatus = false;
 
 
 )
@@ -131,7 +130,7 @@ func (serv *Server) UpInterface() error {
 	if err != nil {
 		log.Panicf("Couldn't bring up %s", attrs.Name)
 	}
-
+	 wgStatus = true;
 	return nil
 }
 func (serv *Server) allocateIP() net.IP {
@@ -211,20 +210,20 @@ func (serv *Server) wgConfiguation() error {
 		}
 
 	}
-	pers := time.Duration(21)
-	ip := net.ParseIP("10.0.0.2/8")
-	peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
-	wgAllowedIPs := make([]net.IPNet,1)
-	wgAllowedIPs[0] = *netlink.NewIPNet(ip)
-	peerA := wgtypes.PeerConfig{
-		PublicKey:         peer_key,
-		ReplaceAllowedIPs: false,
-		PersistentKeepaliveInterval: &pers,
+	//pers := time.Duration(21)
+	//ip := net.ParseIP("10.0.0.2/8")
+	//peer_key, err := wgtypes.ParseKey("hY6dXQboU1KRwUZ/UGFecIw6JKN97/RO6wQDkWA0MXA=")
+	//wgAllowedIPs := make([]net.IPNet,1)
+	//wgAllowedIPs[0] = *netlink.NewIPNet(ip)
+	//peerA := wgtypes.PeerConfig{
+	//	PublicKey:         peer_key,
+	//	ReplaceAllowedIPs: false,
+	//	PersistentKeepaliveInterval: &pers,
+	//
+	//}
 
-	}
-
-	peers = append(peers, peerA)
-	log.Print("successfuly added ME")
+	//peers = append(peers, peerA)
+	//log.Print("successfuly added ME")
 	cfg := wgtypes.Config{
 		PrivateKey:   &keys,
 		ListenPort:   &wgPort,
@@ -327,6 +326,14 @@ func (serv *Server) Start() error {
 	}
 	return nil
 
+}
+func (serv *Server) Stop() error{
+	err := netlink.LinkDel(&link)
+	if err != nil{
+		log.Panic("Error removing the interface ::: ", err)
+	}
+	wgStatus = false;
+	   return nil
 }
 
 func main() {

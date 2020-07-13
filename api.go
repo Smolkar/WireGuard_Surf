@@ -326,12 +326,38 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 
 		w.WriteHeader(http.StatusOK)
 	}
+	func (serv *Server) turnOn(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		serv.Start()
+		log.Print("Starting WireGuard server")
+		w.WriteHeader(http.StatusOK)
+
+	}
+	func (serv *Server) turnOff(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		serv.Stop()
+		log.Print("Starting WireGuard server")
+		w.WriteHeader(http.StatusOK)
+
+	}
+	func (serv *Server) Status(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		if(wgStatus == true){
+		log.Print("WireGuard server is running")
+		w.WriteHeader(http.StatusFound)
+		} else{
+			log.Print("WireGuard serve is off ")
+			w.WriteHeader(http.StatusNoContent)
+		}
+
+
+	}
 //----------API- Init sequance  ----------
 func (serv *Server) StartAPI() error {
 
 	router := httprouter.New()
 	router.GET("/index", serv.Index)
 	router.GET("/identify", serv.Idetify)
+	router.GET("/wg/api/status", serv.Status)
+	router.GET("/wg/api/activate", serv.withAuth(serv.turnOn))
+	router.GET("/wg/api/deactivate", serv.withAuth(serv.turnOff))
 	router.POST("/WG/API/:user/clients", serv.withAuth(serv.CreateClient))
 	router.GET("/WG/API/:user/clients",serv.withAuth(serv.GetClients))
 	router.GET("/WG/API/:user/clients/:client", serv.withAuth(serv.GetClient))
