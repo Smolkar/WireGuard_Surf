@@ -327,6 +327,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		w.WriteHeader(http.StatusOK)
 	}
 	func (serv *Server) turnOn(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
 		serv.Start()
 		log.Print("Starting WireGuard server")
 		w.WriteHeader(http.StatusOK)
@@ -356,8 +357,8 @@ func (serv *Server) StartAPI() error {
 	router.GET("/index", serv.Index)
 	router.GET("/identify", serv.Idetify)
 	router.GET("/wg/api/status", serv.Status)
-	router.GET("/wg/api/activate", serv.withAuth(serv.turnOn))
-	router.GET("/wg/api/deactivate", serv.withAuth(serv.turnOff))
+	router.GET("/wg/api/activate", serv.turnOn)
+	router.GET("/wg/api/deactivate", serv.turnOff)
 	router.POST("/WG/API/:user/clients", serv.withAuth(serv.CreateClient))
 	router.GET("/WG/API/:user/clients",serv.withAuth(serv.GetClients))
 	router.GET("/WG/API/:user/clients/:client", serv.withAuth(serv.GetClient))
