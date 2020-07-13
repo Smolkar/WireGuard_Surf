@@ -44,7 +44,7 @@ var (
 	wgLinkName   =  flag.String("wg-device-name","wg0", "WireGuard network device name")
 	//wgPort             = flag.Int("wg-port",51820,"WireGuard VPN port" )
 	wgStatus = false;
-
+	actuallink = wgLink{}
 
 )
 
@@ -107,6 +107,7 @@ func (serv *Server) UpInterface() error {
 	link := wgLink{attrs: &attrs}
 	log.Print("------------------------------------------")
 	log.Print("Adding WireGuard device ", attrs.Name)
+	actuallink = link
 	err := netlink.LinkAdd(&link)
 	if os.IsExist(err) {
 		log.Printf("WireGuard interface %s already exists. REUSING. ", attrs.Name)
@@ -328,7 +329,7 @@ func (serv *Server) Start() error {
 
 }
 func (serv *Server) Stop() error{
-	err := netlink.LinkDel(&link)
+	err := netlink.LinkDel(&actuallink)
 	if err != nil{
 		log.Panic("Error removing the interface ::: ", err)
 	}
