@@ -331,7 +331,7 @@ func (serv *Server) Start() error {
 }
 func (serv *Server) Stop() error{
 	log.Print("Turning down link ::: ")
-	link, err := netlink.LinkByName("wg0")
+	link, err := netlink.LinkByName(*wgLinkName)
 	if err != nil{
 		log.Print("error getting link ::: ", err)
 	}
