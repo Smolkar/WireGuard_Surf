@@ -347,6 +347,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 		if(wgStatus == true) {
 			log.Print("Shutting down WireGuard server")
 			serv.Stop()
+			serv.StartAPI()
 			w.WriteHeader(http.StatusOK)
 			return
 
