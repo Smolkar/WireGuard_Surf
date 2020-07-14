@@ -128,9 +128,11 @@ func (serv *Server) UpInterface() error {
 	log.Print("------------------------------------------")
 	log.Print("Bringing up wireguard device: ", attrs.Name)
 	err = netlink.LinkSetUp(&link)
+
 	if err != nil {
 		log.Printf("Couldn't bring up %s", attrs.Name)
 	}
+	err = netlink.LinkSetDown(&link)           
 	 wgStatus = true;
 	return nil
 }
@@ -330,7 +332,7 @@ func (serv *Server) Start() error {
 }
 func (serv *Server) Stop() error{
 	log.Print("Turning down link ::: ", actuallink.Attrs())
-	err := netlink.LinkSetDown(actuallink)
+	err := netlink.LinkSetDown(&actuallink)
 	if err != nil{
 		log.Print("Error removing the interface ::: ", err)
 	}
