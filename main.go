@@ -335,13 +335,13 @@ func (serv *Server) Stop() error{
 	if err != nil{
 		log.Print("error getting link ::: ", err)
 	}
-	link, err = netlink.LinkByName("wg0")
-		log.Print(&link)
+
 		err = netlink.LinkSetDown(link)
 		if err != nil {
 			log.Print("Error removing the interface ::: ", err)
 			return  err
 		}
+		log.Print("Interface shutdown")
 		wgStatus = false;
 	
 	   return nil

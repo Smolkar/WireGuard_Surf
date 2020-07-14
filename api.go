@@ -357,7 +357,6 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 			return
 
 		}
-		w.WriteHeader(http.StatusOK)
 
 	}
 	func (serv *Server) Status(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
