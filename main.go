@@ -342,7 +342,7 @@ func (serv *Server) Stop() error{
 			log.Print("Error removing the interface ::: ", err)
 		}
 		wgStatus = false;
-	}
+	
 	   return nil
 }
 
