@@ -362,7 +362,7 @@ func (serv *Server) CreateClient(w http.ResponseWriter, r *http.Request, ps http
 	func (serv *Server) Status(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		if(wgStatus == true){
 		log.Print("WireGuard server is running")
-		w.WriteHeader(http.StatusFound)
+		w.WriteHeader(http.StatusCreated)
 		} else{
 			log.Print("WireGuard server is off ")
 			w.WriteHeader(http.StatusNoContent)
