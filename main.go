@@ -337,7 +337,7 @@ func (serv *Server) Stop() error{
 	}
 	link, err = netlink.LinkByName("wg0")
 		log.Print(&link)
-		err = netlink.LinkSetDown(&link)
+		err = netlink.LinkSetDown(link)
 		if err != nil {
 			log.Print("Error removing the interface ::: ", err)
 		}
