@@ -329,7 +329,8 @@ func (serv *Server) Start() error {
 
 }
 func (serv *Server) Stop() error{
-	err := netlink.LinkDel(&actuallink)
+	log.Print("Turning down link ::: ", &actuallink)
+	err := netlink.LinkSetDown(&actuallink)
 	if err != nil{
 		log.Print("Error removing the interface ::: ", err)
 	}
