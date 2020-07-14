@@ -331,6 +331,9 @@ func (serv *Server) Start() error {
 }
 func (serv *Server) Stop() error{
 	log.Print("Turning down link ::: ")
+	attrs := netlink.NewLinkAttrs()
+	attrs.Name = *wgLinkName
+	link := wgLink{attrs: &attrs}     	
 	err := netlink.LinkSetDown(&link)
 	if err != nil{
 		log.Print("Error removing the interface ::: ", err)
