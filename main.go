@@ -331,12 +331,12 @@ func (serv *Server) Start() error {
 }
 func (serv *Server) Stop() error{
 	log.Print("Turning down link ::: ")
-	link := netlink.LinkByName(*wgLinkName)
-	if err != nil{
+	link, err := netlink.LinkByName(*wgLinkName)
+	if link != nil{
 		log.Print("error getting link ::: ", err)
 	}
 	log.Print(link)
-	err := netlink.LinkSetDown(&link)
+	err = netlink.LinkSetDown(&link)
 	if err != nil{
 		log.Print("Error removing the interface ::: ", err)
 	}
