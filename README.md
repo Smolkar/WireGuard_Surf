@@ -164,7 +164,7 @@ Activate your tunnel from the application on your PC.
 
 I have commented in the source code the endpoints for getting clients or creating such because they don’t work properly……yet.
 
-## List of API endpoints:D
+## List of API endpoints
 Method    URI    
 
 [GET]     10.0.0.1/identify
